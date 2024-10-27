@@ -53,7 +53,7 @@ public class RockItem extends Item {
 
     @Override
     public void use(Player player) {
-        if(player.addItemToInventory(this, Projectile.class)) {
+        if(screen.addItemToInventory(this, Projectile.class)) {
             toDestroy = true;
         }
     }

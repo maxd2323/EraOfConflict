@@ -10,7 +10,6 @@ import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Screens.PlayScreen;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.platformer.Sprites.Entities.Enemies.Enemy;
-import com.mygdx.platformer.Sprites.Tiles.Brick;
 
 public class B2WorldCreator {
 
@@ -28,7 +27,6 @@ public class B2WorldCreator {
         map = screen.getMap();
 
         createFixtures();
-        //createInteractiveTiles();
         //createEnemies();
     }
 
@@ -66,18 +64,6 @@ public class B2WorldCreator {
             fDef.filter.categoryBits = Platformer.OBJECT_BIT;
             body.createFixture(fDef);
         }
-    }
-
-    public void createInteractiveTiles() {
-        // create brick bodies / fixtures
-        for (MapObject object : map.getLayers().get(5).getObjects().getByType(RectangleMapObject.class)) {
-            new Brick(screen, object);
-        }
-
-        // create coin bodies / fixtures
-//        for (MapObject object : map.getLayers().get(4).getObjects().getByType(RectangleMapObject.class)) {
-//            new Coin(screen, object);
-//        }
     }
 
     public void createEnemies() {

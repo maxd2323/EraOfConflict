@@ -16,13 +16,12 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mygdx.platformer.Platformer;
-import com.mygdx.platformer.Sprites.Entities.Enemies.DevilArcher;
+import com.mygdx.platformer.Sprites.Entities.DarkElf;
 import com.mygdx.platformer.Sprites.Entities.Enemies.Enemy;
 import com.mygdx.platformer.Sprites.Entities.Enemies.HellKnight;
 import com.mygdx.platformer.Sprites.Entities.Player;
 import com.mygdx.platformer.Sprites.Items.*;
 import com.mygdx.platformer.Sprites.Projectiles.Projectile;
-import com.mygdx.platformer.Sprites.Tiles.Chest;
 import com.mygdx.platformer.utils.B2WorldCreator;
 import com.mygdx.platformer.utils.DataStructures.Inventory;
 import com.mygdx.platformer.utils.WorldContactListener;
@@ -44,16 +43,16 @@ public class PlayScreen implements Screen {
     private Box2DDebugRenderer b2dr;
     private B2WorldCreator creator;
 
-    private Player player;
     private HellKnight hellKnight;
 
     private Music music;
 
     private Array<Item> items;
     private Array<Projectile> projectiles;
+    private Array<Player> playerEntities;
     private Array<Enemy> enemies;
-    private Array<Chest> chests;
     private LinkedBlockingQueue<ItemDef> itemsToSpawn;
+    public Inventory inventory;
 
     private TextureAtlas darkElfAtlas;
     private TextureAtlas devilArcherAtlas;
@@ -78,16 +77,15 @@ public class PlayScreen implements Screen {
         world = new World(new Vector2(0,  Platformer.GRAVITY), true);
         b2dr = new Box2DDebugRenderer();
         creator = new B2WorldCreator(this);
-
-        player = new Player(this);
-
         world.setContactListener(new WorldContactListener());
 
         itemsToSpawn = new LinkedBlockingQueue<ItemDef>();
         items = new Array<Item>();
         projectiles = new Array<Projectile>();
+        playerEntities = new Array<Player>();
         enemies = new Array<Enemy>();
-        chests = new Array<Chest>();
+
+        inventory = new Inventory(9);
 
         tempInitializeWorld();
     }
@@ -154,10 +152,13 @@ public class PlayScreen implements Screen {
             if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
                 enemies.add(new HellKnight(this, 20, 3));
             }
+            if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+                playerEntities.add(new DarkElf(this, 20, 3));
+            }
 
             for(int i = 0; i < 9; i++) {
                 if (Gdx.input.isKeyJustPressed(Input.Keys.valueOf(String.valueOf(i+1)))) {
-                    player.setSelectedInventorySpace(i);
+                    setSelectedInventorySpace(i);
                 }
             }
         }
@@ -169,12 +170,14 @@ public class PlayScreen implements Screen {
 
         world.step(1/60f, 6, 4);
 
-        player.update(dt);
+        for(Player player: playerEntities) {
+            player.update(dt);
+            if(player.isDestroyed())
+                playerEntities.removeValue(player, true);
+        }
+
         for(Enemy enemy : enemies) {
             enemy.update(dt);
-            if(enemy.getX() < player.getX() + (224 / Platformer.PPM)) {
-                enemy.b2body.setActive(true);
-            }
             if(enemy.isDestroyed())
                 enemies.removeValue(enemy, true);
         }
@@ -189,14 +192,10 @@ public class PlayScreen implements Screen {
                 projectiles.removeValue(projectile, true);
         }
 
-        for(Chest chest: chests) {
-            chest.update();
-        }
-
         hud.update(dt);
 
-        if(player.currentState != Player.State.DEAD) {
-            gameCam.position.x = player.b2body.getPosition().x;
+        if(playerEntities.size > 0) {
+            gameCam.position.x = playerEntities.get(playerEntities.size-1).b2body.getPosition().x;
         }
         gameCam.update();
 
@@ -217,8 +216,10 @@ public class PlayScreen implements Screen {
 
         game.batch.setProjectionMatrix(gameCam.combined);
         game.batch.begin();
-        player.draw(game.batch);
         update(delta);
+        for(Player player : playerEntities) {
+            player.draw(game.batch);
+        }
         for(Enemy enemy : enemies) {
             enemy.draw(game.batch);
         }
@@ -229,9 +230,6 @@ public class PlayScreen implements Screen {
 
         for(Item item : items) {
             item.draw(game.batch);
-        }
-        for(Chest chest: chests) {
-            chest.draw(game.batch);
         }
         game.batch.end();
 
@@ -244,8 +242,17 @@ public class PlayScreen implements Screen {
         }
     }
 
-    public Vector2 getPlayerPosition() {
-        return player.b2body.getPosition();
+    public void setSelectedInventorySpace(int i) {
+        inventory.selectedIndex = i;
+        redrawHud(inventory);
+    }
+
+    public boolean addItemToInventory(Item item, Class rootClass) {
+        boolean addSuccess = inventory.addIfSpace(item, rootClass);
+        if(addSuccess) {
+            redrawHud(inventory);
+        }
+        return addSuccess;
     }
 
     @Override

@@ -16,10 +16,6 @@ import com.mygdx.platformer.utils.Constants;
 
 public class HellKnight extends Enemy {
 
-    // States
-    public State currentState;
-    public State previousState;
-
     // Boolean flags
     private boolean isAwake;
     private boolean runHurtAnimation;
@@ -39,7 +35,8 @@ public class HellKnight extends Enemy {
                 y,
                 Constants.HELL_KNIGHT_INITIAL_HEALTH,
                 Constants.HELL_KNIGHT_INITIAL_MAGICKA,
-                Constants.HELL_KNIGHT_INITIAL_SPEED
+                Constants.HELL_KNIGHT_INITIAL_SPEED,
+                "HellKnight"
         );
         stateTimer = 0;
 
@@ -163,7 +160,6 @@ public class HellKnight extends Enemy {
     @Override
     public void update(float deltaTime) {
         stateTimer += deltaTime;
-        Vector2 playerPosition = screen.getPlayerPosition();
         if(b2body.getPosition().y < -10 || currentHealth <= 0) {
             b2body.setActive(false);
             isDead = true;
@@ -173,8 +169,12 @@ public class HellKnight extends Enemy {
             destroyed = true;
         }
         else if(!destroyed) {
-            if(b2body.getLinearVelocity().y == 0) {
+            if(b2body.getLinearVelocity().y == 0 && shouldMove) {
                 this.moveLeft();
+            }
+
+            if(shouldMove == false) {
+                this.b2body.setLinearVelocity(0f, 0f);
             }
 
             if(isAwake) {

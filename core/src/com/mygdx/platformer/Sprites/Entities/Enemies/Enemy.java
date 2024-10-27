@@ -33,7 +33,33 @@ public abstract class Enemy extends Entity {
                 screen,
                 health,
                 magicka,
-                speed
+                speed,
+                "Enemy"
+        );
+        this.world = screen.getWorld();
+        this.screen = screen;
+        setPosition(x, y);
+        defineEnemy();
+        velocity = new Vector2(1, 0);
+        b2body.setActive(true);
+        collisionDamage = 10f;
+    }
+
+    public Enemy(
+            PlayScreen screen,
+            float x,
+            float y,
+            float health,
+            float magicka,
+            float speed,
+            String entityTag
+    ) {
+        super(
+                screen,
+                health,
+                magicka,
+                speed,
+                entityTag
         );
         this.world = screen.getWorld();
         this.screen = screen;

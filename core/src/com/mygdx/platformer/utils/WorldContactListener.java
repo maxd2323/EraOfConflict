@@ -1,14 +1,9 @@
 package com.mygdx.platformer.utils;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.physics.box2d.*;
 import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Sprites.Entities.Enemies.Enemy;
-import com.mygdx.platformer.Sprites.Entities.Entity;
-import com.mygdx.platformer.Sprites.Items.Coin;
 import com.mygdx.platformer.Sprites.Projectiles.Projectile;
-import com.mygdx.platformer.Sprites.Tiles.Chest;
-import com.mygdx.platformer.Sprites.Tiles.InteractiveTileObject;
 import com.mygdx.platformer.Sprites.Items.Item;
 import com.mygdx.platformer.Sprites.Entities.Player;
 
@@ -23,18 +18,6 @@ public class WorldContactListener implements ContactListener {
 
 
         switch (cDef) {
-            case Platformer.PLAYER_BIT | Platformer.CHEST_BIT:
-                if(fixA.getFilterData().categoryBits == Platformer.PLAYER_BIT)
-                    ((Chest) fixB.getUserData()).collideWithPlayer((Player) fixA.getUserData());
-                else
-                    ((Chest) fixA.getUserData()).collideWithPlayer((Player) fixB.getUserData());
-                break;
-            case Platformer.COIN_BIT | Platformer.PLAYER_BIT:
-                if(fixA.getFilterData().categoryBits == Platformer.COIN_BIT)
-                    ((Coin) fixA.getUserData()).use((Player) fixB.getUserData());
-                else
-                    ((Coin) fixB.getUserData()).use((Player) fixA.getUserData());
-                break;
             case Platformer.ENEMY_HEAD_BIT | Platformer.PLAYER_BIT:
                 if(fixA.getFilterData().categoryBits == Platformer.ENEMY_HEAD_BIT)
                     ((Enemy) fixA.getUserData()).hitOnHead((Player) fixB.getUserData());
@@ -90,6 +73,23 @@ public class WorldContactListener implements ContactListener {
 
     @Override
     public void endContact(Contact contact) {
+        Fixture fixA = contact.getFixtureA();
+        Fixture fixB = contact.getFixtureB();
+
+        int cDef = fixA.getFilterData().categoryBits | fixB.getFilterData().categoryBits;
+
+
+        switch (cDef) {
+            case Platformer.PLAYER_BIT | Platformer.ENEMY_BIT:
+                if (fixA.getFilterData().categoryBits == Platformer.PLAYER_BIT) {
+                    ((Player) fixA.getUserData()).stopCombat();
+                    ((Enemy) fixB.getUserData()).stopCombat();
+                } else {
+                    ((Player) fixB.getUserData()).stopCombat();
+                    ((Enemy) fixA.getUserData()).stopCombat();
+                }
+                break;
+        }
     }
 
     @Override
