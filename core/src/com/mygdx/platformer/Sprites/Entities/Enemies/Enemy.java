@@ -14,48 +14,37 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Screens.PlayScreen;
 import com.mygdx.platformer.Sprites.Entities.Entity;
+import com.mygdx.platformer.Sprites.Entities.EntityStats;
 import com.mygdx.platformer.Sprites.Entities.Player;
 import com.mygdx.platformer.Sprites.Projectiles.Projectile;
 
 public abstract class Enemy extends Entity {
-    public float collisionDamage;
     protected boolean isAwake;
 
     public Enemy(
             PlayScreen screen,
             float x,
             float y,
-            float health,
-            float magicka,
-            float speed,
-            float baseDamage
+            EntityStats entityStats
     ) {
-        this(screen, x, y, health, magicka, speed, baseDamage, "Enemy");
+        this(screen, x, y, entityStats, "Enemy");
     }
 
     public Enemy(
             PlayScreen screen,
             float x,
             float y,
-            float health,
-            float magicka,
-            float speed,
-            float baseDamage,
+            EntityStats entityStats,
             String entityTag
     ) {
         super(
                 screen,
                 x,
                 y,
-                health,
-                magicka,
-                speed,
-                baseDamage,
+                entityStats,
                 entityTag
         );
-        collisionDamage = 10f;
         facingRight = false;
-        attackCooldown = 2f;
 
         setBounds(0, 0, Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
         isAwake = true;
@@ -85,7 +74,7 @@ public abstract class Enemy extends Entity {
             }
         }
 
-        if (inCombat) {
+        if (inCombat && !runAttackAnimation) {
             timeSinceLastAttack += deltaTime;
             if (timeSinceLastAttack >= attackCooldown) {
                 attack();
@@ -114,7 +103,6 @@ public abstract class Enemy extends Entity {
         b2body.createFixture(fDef).setUserData(this);
     }
 
-    protected abstract TextureRegion getFrame(float dt);
     public abstract void hitOnHead(Player player);
     public abstract void onEnemyHit(Enemy enemy);
     public abstract void loadTexturesAndAnimations(PlayScreen screen);

@@ -13,102 +13,18 @@ import com.mygdx.platformer.utils.Constants;
 
 public class DevilArcher extends Enemy {
 
-    // Boolean flags
-    private boolean isAwake;
-    private boolean runHurtAnimation;
-    private boolean runShootingAnimation;
-
-    private float stateTimer;
-
     public DevilArcher(PlayScreen screen, float x, float y) {
         super(
                 screen,
                 x,
                 y,
-                Constants.DEVIL_ARCHER_INITIAL_HEALTH,
-                Constants.DEVIL_ARCHER_INITIAL_MAGICKA,
-                Constants.DEVIL_ARCHER_INITIAL_SPEED,
-                Constants.DEVIL_ARCHER_BASE_DAMAGE,
+                Constants.DEVIL_ARCHER_STATS,
                 "DevilArcher"
         );
-        runHurtAnimation = false;
         isAwake = true;
 
         setRegion((TextureRegion) animations.get("idle").getKeyFrames()[0]);
         setBounds(getX(), getY(), Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
-    }
-
-    public TextureRegion getFrame(float deltaTime) {
-        currentState = getState();
-
-        TextureRegion region;
-        switch (currentState) {
-            case DEAD:
-                region = (TextureRegion) animations.get("dead").getKeyFrame(stateTimer, false);
-                if(animations.get("dead").isAnimationFinished(stateTimer) && stateTimer > 5){
-                    setToDestroy = true;
-                }
-                break;
-            case SHOOTING:
-                region = (TextureRegion) animations.get("shoot").getKeyFrame(stateTimer, false);
-                if(animations.get("shoot").isAnimationFinished(stateTimer) && stateTimer > 5){
-                    runShootingAnimation = false;
-                }
-                break;
-            case RUNNING:
-                region = (TextureRegion) animations.get("run").getKeyFrame(stateTimer, true);
-                break;
-            case HURT:
-                region = (TextureRegion) animations.get("hurt").getKeyFrame(stateTimer);
-                if(facingRight && !region.isFlipX()) {
-                    region.flip(true, false);
-                } else if(!facingRight && region.isFlipX()) {
-                    region.flip(true, false);
-                }
-                if(animations.get("hurt").isAnimationFinished(stateTimer)){
-                    runHurtAnimation = false;
-                }
-                break;
-            case FALLING:
-            case STANDING:
-            default:
-                region = (TextureRegion) animations.get("idle").getKeyFrame(stateTimer, true);
-                if(stateTimer > 5) {
-                    shoot();
-                }
-                break;
-        }
-        if((b2body.getLinearVelocity().x < 0 || !facingRight) && !region.isFlipX()) {
-            region.flip(true, false);
-            facingRight = false;
-        }
-        else if((b2body.getLinearVelocity().x > 0 || facingRight) && region.isFlipX()) {
-            region.flip(true, false);
-            facingRight = true;
-        }
-        stateTimer = (currentState == previousState) && isAwake ? stateTimer + deltaTime : 0;
-        previousState = currentState;
-        return region;
-    }
-
-    public State getState() {
-        if(isDead) {
-            return State.DEAD;
-        } else if(runShootingAnimation) {
-            return State.SHOOTING;
-        }
-        else if(runHurtAnimation) {
-            return State.HURT;
-        }
-        else if(b2body.getLinearVelocity().y < 0) {
-            return State.FALLING;
-        }
-        else if(b2body.getLinearVelocity().x != 0) {
-            return State.RUNNING;
-        }
-        else {
-            return State.STANDING;
-        }
     }
 
     public void shoot() {
@@ -116,7 +32,6 @@ public class DevilArcher extends Enemy {
                 screen, getX(), getY(), facingRight, 10
         );
         screen.spawnProjectile(arrow);
-        runShootingAnimation = true;
     }
 
     @Override

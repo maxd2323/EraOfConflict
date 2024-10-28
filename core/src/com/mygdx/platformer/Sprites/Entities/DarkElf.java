@@ -15,10 +15,7 @@ public class DarkElf extends Player {
                 screen,
                 x,
                 y,
-                Constants.PLAYER_INITIAL_HEALTH,
-                Constants.PLAYER_INITIAL_MAGICKA,
-                Constants.PLAYER_INITIAL_SPEED,
-                Constants.DARK_ELF_BASE_DAMAGE,
+                Constants.DARK_ELF_STATS,
                 "DarkElf"
         );
         attackCooldown = 2f;

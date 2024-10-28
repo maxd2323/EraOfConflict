@@ -8,10 +8,6 @@ import com.mygdx.platformer.Screens.PlayScreen;
 
 public class Player extends Entity {
 
-    // Boolean Flags
-    private boolean runThrowAnimation;
-    private boolean runHurtAnimation;
-
     // Other
     public int jumpCount;
 
@@ -20,32 +16,23 @@ public class Player extends Entity {
             PlayScreen screen,
             float x,
             float y,
-            float health,
-            float magicka,
-            float speed,
-            float baseDamage
+            EntityStats entityStats
     ) {
-        this(screen, x, y, health, magicka, speed, baseDamage, "Player");
+        this(screen, x, y, entityStats, "Player");
     }
 
     public Player(
             PlayScreen screen,
             float x,
             float y,
-            float health,
-            float magicka,
-            float speed,
-            float baseDamage,
+            EntityStats entityStats,
             String entityTag
     ) {
         super(
                 screen,
                 x,
                 y,
-                health,
-                magicka,
-                speed,
-                baseDamage,
+                entityStats,
                 entityTag
         );
 
@@ -57,87 +44,6 @@ public class Player extends Entity {
     }
 
     // Getters
-
-    public TextureRegion getFrame(float deltaTime) {
-        currentState = getState();
-
-        TextureRegion region;
-        switch (currentState) {
-            case DEAD:
-                region = (TextureRegion) animations.get("dead").getKeyFrame(stateTimer, false);
-                if(animations.get("dead").isAnimationFinished(stateTimer) && stateTimer > 5){
-                    setToDestroy = true;
-                }
-                break;
-            case SLASHING:
-                region = (TextureRegion) animations.get("slash").getKeyFrame(stateTimer, false);
-                if(animations.get("slash").isAnimationFinished(stateTimer) && stateTimer > 5){
-                    currentState = State.STANDING;
-                }
-                break;
-            case JUMPING:
-                region = textures.get("jump");
-                break;
-            case RUNNING:
-                region = (TextureRegion) animations.get("run").getKeyFrame(stateTimer, true);
-                break;
-            case THROWING:
-                region = (TextureRegion) animations.get("throw").getKeyFrame(stateTimer);
-                if(facingRight && !region.isFlipX()) {
-                    region.flip(true, false);
-                } else if(!facingRight && region.isFlipX()) {
-                    region.flip(true, false);
-                }
-                if(animations.get("throw").isAnimationFinished(stateTimer)){
-                    runThrowAnimation = false;
-                }
-                break;
-            case HURT:
-                region = (TextureRegion) animations.get("hurt").getKeyFrame(stateTimer);
-                if(facingRight && !region.isFlipX()) {
-                    region.flip(true, false);
-                } else if(!facingRight && region.isFlipX()) {
-                    region.flip(true, false);
-                }
-                if(animations.get("hurt").isAnimationFinished(stateTimer)){
-                    runHurtAnimation = false;
-                }
-                break;
-            case FALLING:
-            case STANDING:
-            default:
-                region = textures.get("stand");;
-                break;
-        }
-        stateTimer = currentState == previousState ? stateTimer + deltaTime : 0;
-        previousState = currentState;
-        return region;
-    }
-
-    public State getState() {
-        if(isDead) {
-            return State.DEAD;
-        } else if (runAttackAnimation) {
-            return State.SLASHING;
-        } else if(runThrowAnimation) {
-            return State.THROWING;
-        }
-        else if(runHurtAnimation) {
-            return State.HURT;
-        }
-        else if(b2body.getLinearVelocity().y > 0 || (b2body.getLinearVelocity().y < 0 && previousState == State.JUMPING)) {
-            return State.JUMPING;
-        }
-        else if(b2body.getLinearVelocity().y < 0) {
-            return State.FALLING;
-        }
-        else if(b2body.getLinearVelocity().x != 0) {
-            return State.RUNNING;
-        }
-        else {
-            return State.STANDING;
-        }
-    }
 
     public void update(float deltaTime) {
         setPosition(b2body.getPosition().x - getWidth() / 2, b2body.getPosition().y - getHeight() / 2 + 8 / Platformer.PPM);
@@ -164,7 +70,7 @@ public class Player extends Entity {
             jumpCount = 0;
         }
 
-        if (inCombat) {
+        if (inCombat && !runAttackAnimation) {
             timeSinceLastAttack += deltaTime;
             if (timeSinceLastAttack >= attackCooldown) {
                 attack();

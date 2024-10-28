@@ -32,6 +32,8 @@ public abstract class Entity extends Sprite {
     public boolean facingRight;
 
     protected boolean runAttackAnimation;
+    protected boolean runThrowAnimation;
+    protected boolean runHurtAnimation;
 
     protected boolean shouldMove;
     protected boolean destroyed;
@@ -43,27 +45,31 @@ public abstract class Entity extends Sprite {
     protected float speed;
     protected float baseDamage;
     protected float attackCooldown;
-    protected boolean inCombat = false;
+    protected boolean inCombat;
     protected float timeSinceLastAttack;
     protected Entity opponent;
     protected ArrayMap<String, Animation> animations;
     protected ArrayMap<String, TextureRegion> textures;
     protected String entityTag;
-    public Entity(PlayScreen screen, float health, float magicka, float baseDamage, float speed) {
-        this(screen, 0f, 0f, health, magicka, speed, baseDamage, "entity");
+    public Entity(PlayScreen screen, EntityStats entityStats) {
+        this(screen, 0f, 0f, entityStats, "entity");
     }
 
-    public Entity(PlayScreen screen, float x, float y, float health, float magicka, float speed, float baseDamage, String entityTag) {
+    public Entity(PlayScreen screen, float x, float y, EntityStats entityStats, String entityTag) {
         super();
         this.world = screen.getWorld();
         this.screen = screen;
         loadTexturesAndAnimations(screen);
         setPosition(x, y);
-        healthCapacity = health;
-        currentHealth = health;
-        magickaCapacity = magicka;
-        currentMagicka = magicka;
-        this.speed = speed;
+
+        healthCapacity = entityStats.initialHealth;
+        currentHealth = entityStats.initialHealth;
+        magickaCapacity = entityStats.initialMagicka;
+        currentMagicka = entityStats.initialMagicka;
+        attackCooldown = entityStats.attackCooldown;
+        speed = entityStats.speed;
+        baseDamage = entityStats.baseDamage;
+
         destroyed = false;
         setToDestroy = false;
         timeSinceLastAttack = 0f;
@@ -72,12 +78,16 @@ public abstract class Entity extends Sprite {
         stateTimer = 0;
         shouldMove = true;
         isDead = false;
-        attackCooldown = 5f;
-        this.baseDamage = baseDamage;
         facingRight = true;
         this.entityTag = entityTag;
+
+        runThrowAnimation = false;
+        runAttackAnimation = false;
+        runHurtAnimation = false;
+        inCombat = false;
+
         defineEntity();
-        //logEntity();
+        logEntity();
     }
 
     private void logEntity() {
@@ -163,8 +173,101 @@ public abstract class Entity extends Sprite {
     }
 
     protected void attack() {
-        opponent.applyDamage(baseDamage);
-        runAttackAnimation = true;
+        if (!runAttackAnimation) {
+            runAttackAnimation = true; // Start animation
+            stateTimer = 0; // Reset state timer for animation
+        }
+    }
+
+    public TextureRegion getFrame(float deltaTime) {
+        currentState = getState();
+
+        TextureRegion region;
+        switch (currentState) {
+            case DEAD:
+                region = (TextureRegion) animations.get("dead").getKeyFrame(stateTimer, false);
+                if(animations.get("dead").isAnimationFinished(stateTimer) && stateTimer > 5){
+                    setToDestroy = true;
+                }
+                break;
+            case SLASHING:
+                region = (TextureRegion) animations.get("slash").getKeyFrame(stateTimer, false);
+                if (animations.get("slash").isAnimationFinished(stateTimer)) {
+                    // Apply damage at the end of animation
+                    opponent.applyDamage(baseDamage);
+                    runAttackAnimation = false;  // Reset after animation finishes
+                }
+                break;
+            case JUMPING:
+                region = textures.get("jump");
+                break;
+            case RUNNING:
+                region = (TextureRegion) animations.get("run").getKeyFrame(stateTimer, true);
+                break;
+            case THROWING:
+                region = (TextureRegion) animations.get("throw").getKeyFrame(stateTimer);
+                if(facingRight && !region.isFlipX()) {
+                    region.flip(true, false);
+                } else if(!facingRight && region.isFlipX()) {
+                    region.flip(true, false);
+                }
+                if(animations.get("throw").isAnimationFinished(stateTimer)){
+                    runThrowAnimation = false;
+                }
+                break;
+            case HURT:
+                region = (TextureRegion) animations.get("hurt").getKeyFrame(stateTimer);
+                if(facingRight && !region.isFlipX()) {
+                    region.flip(true, false);
+                } else if(!facingRight && region.isFlipX()) {
+                    region.flip(true, false);
+                }
+                if(animations.get("hurt").isAnimationFinished(stateTimer)){
+                    runHurtAnimation = false;
+                }
+                break;
+            case FALLING:
+            case STANDING:
+            default:
+                region = textures.get("stand");;
+                break;
+        }
+        if((b2body.getLinearVelocity().x < 0 || !facingRight) && !region.isFlipX()) {
+            region.flip(true, false);
+            facingRight = false;
+        }
+        else if((b2body.getLinearVelocity().x > 0 || facingRight) && region.isFlipX()) {
+            region.flip(true, false);
+            facingRight = true;
+        }
+        stateTimer = currentState == previousState ? stateTimer + deltaTime : 0;
+        previousState = currentState;
+        return region;
+    }
+
+    public State getState() {
+        if(isDead) {
+            return State.DEAD;
+        } else if (runAttackAnimation) {
+            return State.SLASHING;
+        } else if(runThrowAnimation) {
+            return State.THROWING;
+        }
+        else if(runHurtAnimation) {
+            return State.HURT;
+        }
+        else if(b2body.getLinearVelocity().y > 0 || (b2body.getLinearVelocity().y < 0 && previousState == State.JUMPING)) {
+            return State.JUMPING;
+        }
+        else if(b2body.getLinearVelocity().y < 0) {
+            return State.FALLING;
+        }
+        else if(b2body.getLinearVelocity().x != 0) {
+            return State.RUNNING;
+        }
+        else {
+            return State.STANDING;
+        }
     }
 
 
