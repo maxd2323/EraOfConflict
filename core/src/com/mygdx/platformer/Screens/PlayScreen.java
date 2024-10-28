@@ -63,7 +63,7 @@ public class PlayScreen implements Screen {
     private final float maxRechargePoints = 100;
     private final float rechargeRate = 10;
     private final float darkElfCost = 60;
-
+    private int coins = 0;
     public PlayScreen(Platformer game) {
         darkElfAtlas = new TextureAtlas("sprites/dark_elf/dark_elf_merged.atlas");
         devilArcherAtlas = new TextureAtlas("sprites/devil_archer1/devil_archer1.atlas");
@@ -191,8 +191,11 @@ public class PlayScreen implements Screen {
 
         for (Enemy enemy : enemies) {
             enemy.update(dt);
-            if (enemy.isDestroyed())
+            if (enemy.isDestroyed()) {
+                coins += 10;  // Increment coins by a specified amount per enemy
+                hud.setScore(coins);  // Update HUD with the new coin count
                 enemies.removeValue(enemy, true);
+            }
         }
 
         for (Item item : items) {

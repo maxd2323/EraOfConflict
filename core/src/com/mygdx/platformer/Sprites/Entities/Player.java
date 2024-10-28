@@ -28,9 +28,6 @@ public abstract class Player extends Entity {
                 entityTag
         );
 
-        attackCooldown = 5f;
-        facingRight = true;
-
         setBounds(0, 0, Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
         setRegion(textures.get("stand"));
     }
