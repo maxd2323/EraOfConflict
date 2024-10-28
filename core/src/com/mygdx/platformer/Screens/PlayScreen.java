@@ -30,7 +30,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class PlayScreen implements Screen {
 
-    public Platformer game;
+    private Platformer game;
     private OrthographicCamera gameCam;
     private Viewport gamePort;
     private Hud hud;
@@ -58,6 +58,11 @@ public class PlayScreen implements Screen {
     private TextureAtlas devilArcherAtlas;
     private TextureAtlas hellKnightAtlas;
 
+    // Recharge Points for Buying Characters
+    private float rechargePoints = 100;
+    private final float maxRechargePoints = 100;
+    private final float rechargeRate = 10;
+    private final float darkElfCost = 60;
 
     public PlayScreen(Platformer game) {
         darkElfAtlas = new TextureAtlas("sprites/dark_elf/dark_elf_merged.atlas");
@@ -117,9 +122,6 @@ public class PlayScreen implements Screen {
     public void handleSpawningItems() {
         if(!itemsToSpawn.isEmpty()) {
             ItemDef itemDef = itemsToSpawn.poll();
-//            if(itemDef.type == Mushroom.class) {
-//                items.add(new Mushroom(this, itemDef.position.x, itemDef.position.y));
-//            }
         }
     }
 
@@ -148,16 +150,23 @@ public class PlayScreen implements Screen {
     }
 
     public void handleInput(float dt) {
-        if(!gameOver()) {
+        if (!gameOver()) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
                 enemies.add(new HellKnight(this, 20, 3));
             }
+
+            // Check for Dark Elf spawn only if recharge points are enough
             if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-                playerEntities.add(new DarkElf(this, 20, 3));
+                if (rechargePoints >= darkElfCost) {
+                    playerEntities.add(new DarkElf(this, 1, 3));
+                    rechargePoints -= darkElfCost;  // Deduct cost
+                } else {
+                    System.out.println("Not enough recharge points to buy Dark Elf!");
+                }
             }
 
-            for(int i = 0; i < 9; i++) {
-                if (Gdx.input.isKeyJustPressed(Input.Keys.valueOf(String.valueOf(i+1)))) {
+            for (int i = 0; i < 9; i++) {
+                if (Gdx.input.isKeyJustPressed(Input.Keys.valueOf(String.valueOf(i + 1)))) {
                     setSelectedInventorySpace(i);
                 }
             }
@@ -168,34 +177,38 @@ public class PlayScreen implements Screen {
         handleInput(dt);
         handleSpawningItems();
 
+        // Recharge points over time and update HUD
+        rechargePoints = Math.min(rechargePoints + rechargeRate * dt, maxRechargePoints);
+        hud.setRechargePoints(rechargePoints);
+
         world.step(1/60f, 6, 4);
 
-        for(Player player: playerEntities) {
+        for (Player player : playerEntities) {
             player.update(dt);
-            if(player.isDestroyed())
+            if (player.isDestroyed())
                 playerEntities.removeValue(player, true);
         }
 
-        for(Enemy enemy : enemies) {
+        for (Enemy enemy : enemies) {
             enemy.update(dt);
-            if(enemy.isDestroyed())
+            if (enemy.isDestroyed())
                 enemies.removeValue(enemy, true);
         }
 
-        for(Item item: items){
+        for (Item item : items) {
             item.update(dt);
         }
 
-        for(Projectile projectile: projectiles) {
+        for (Projectile projectile : projectiles) {
             projectile.update(dt);
-            if(projectile.isDestroyed())
+            if (projectile.isDestroyed())
                 projectiles.removeValue(projectile, true);
         }
 
         hud.update(dt);
 
-        if(playerEntities.size > 0) {
-            gameCam.position.x = playerEntities.get(playerEntities.size-1).b2body.getPosition().x;
+        if (playerEntities.size > 0) {
+            gameCam.position.x = playerEntities.get(playerEntities.size - 1).b2body.getPosition().x;
         }
         gameCam.update();
 
@@ -217,18 +230,19 @@ public class PlayScreen implements Screen {
         game.batch.setProjectionMatrix(gameCam.combined);
         game.batch.begin();
         update(delta);
-        for(Player player : playerEntities) {
+
+        for (Player player : playerEntities) {
             player.draw(game.batch);
         }
-        for(Enemy enemy : enemies) {
+        for (Enemy enemy : enemies) {
             enemy.draw(game.batch);
         }
 
-        for(Projectile projectile : projectiles) {
+        for (Projectile projectile : projectiles) {
             projectile.draw(game.batch);
         }
 
-        for(Item item : items) {
+        for (Item item : items) {
             item.draw(game.batch);
         }
         game.batch.end();
@@ -236,7 +250,7 @@ public class PlayScreen implements Screen {
         game.batch.setProjectionMatrix(hud.stage.getCamera().combined);
         hud.stage.draw();
 
-        if(gameOver()) {
+        if (gameOver()) {
             game.setScreen(new GameOverScreen(game));
             dispose();
         }
@@ -249,7 +263,7 @@ public class PlayScreen implements Screen {
 
     public boolean addItemToInventory(Item item, Class rootClass) {
         boolean addSuccess = inventory.addIfSpace(item, rootClass);
-        if(addSuccess) {
+        if (addSuccess) {
             redrawHud(inventory);
         }
         return addSuccess;

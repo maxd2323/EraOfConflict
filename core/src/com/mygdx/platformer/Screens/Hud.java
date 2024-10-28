@@ -8,31 +8,21 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.mygdx.platformer.Platformer;
-import com.mygdx.platformer.Sprites.Items.Item;
-import com.mygdx.platformer.Sprites.Items.ItemDef;
-import com.mygdx.platformer.Sprites.UI.HealthBar;
 import com.mygdx.platformer.utils.DataStructures.Inventory;
 import com.mygdx.platformer.utils.DataStructures.InventoryItem;
-
-import java.util.Optional;
 
 public class Hud implements Disposable {
     public Stage stage;
     private Viewport viewport;
+
     private static Integer currentHealth;
-    private static Integer currentMagicka;
     private static Integer coins;
 
     private static Label scoreLabel;
@@ -45,12 +35,14 @@ public class Hud implements Disposable {
     Label platformerLabel;
 
     static ProgressBar healthBar;
-    static ProgressBar magickaBar;
+    static ProgressBar rechargeBar;  // Renamed to represent recharge points
+
+    private float maxRechargePoints = 100;    // Max recharge points
+    private float rechargePoints = 100;       // Current recharge points
 
     public Hud(SpriteBatch sb) {
         currentInventory = new Inventory(9);
         currentHealth = 99;
-        currentMagicka = 99;
         coins = 0;
 
         viewport = new FitViewport(600, 400, new OrthographicCamera());
@@ -71,7 +63,7 @@ public class Hud implements Disposable {
         stage.clear();
         createTable();
         healthBar = createProgressBar("ui/healthbar.png", 0, 100, 10, 10, currentHealth);
-        magickaBar = createProgressBar("ui/magickaBar.png", 0, 100, 350, 10, currentMagicka);
+        rechargeBar = createProgressBar("ui/magickaBar.png", 0, maxRechargePoints, 350, 10, (int) rechargePoints);  // Updated to use recharge points
         createInventoryBar(currentInventory);
         dialogBox = new DialogBox(stage);
     }
@@ -116,7 +108,7 @@ public class Hud implements Disposable {
 
         healthTracker = new Label(String.format("%03d", currentHealth), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         scoreLabel = new Label(String.format("Coins %06d", coins), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        healthLabel = new Label("Heatlh", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
+        healthLabel = new Label("Health", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         levelLabel = new Label("1-L", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         worldLabel = new Label("Location", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         platformerLabel = new Label("PLATFORMER", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
@@ -150,6 +142,8 @@ public class Hud implements Disposable {
     }
 
     public void update(float deltaTime) {
+        rechargePoints = Math.min(rechargePoints + deltaTime * 10, maxRechargePoints);  // Simulate recharge rate
+        rechargeBar.setValue(rechargePoints);  // Update recharge bar display
     }
 
     public static void setScore(int value) {
@@ -163,14 +157,13 @@ public class Hud implements Disposable {
         healthBar.setValue((float) health);
     }
 
-    public static void setMagicka(int magicka) {
-        currentMagicka = magicka;
-        magickaBar.setValue((float) magicka);
+    public void setRechargePoints(float points) {
+        rechargePoints = points;
+        rechargeBar.setValue(rechargePoints);
     }
 
     @Override
     public void dispose() {
         stage.dispose();
     }
-
 }

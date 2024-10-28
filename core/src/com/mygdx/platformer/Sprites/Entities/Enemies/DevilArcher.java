@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Screens.PlayScreen;
-import com.mygdx.platformer.Sprites.Entities.Player;
 import com.mygdx.platformer.Sprites.Projectiles.ArrowProjectile;
 import com.mygdx.platformer.Sprites.Projectiles.Projectile;
 import com.mygdx.platformer.utils.Constants;
@@ -21,10 +20,6 @@ public class DevilArcher extends Enemy {
                 Constants.DEVIL_ARCHER_STATS,
                 "DevilArcher"
         );
-        isAwake = true;
-
-        setRegion((TextureRegion) animations.get("idle").getKeyFrames()[0]);
-        setBounds(getX(), getY(), Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
     }
 
     public void shoot() {
@@ -41,51 +36,7 @@ public class DevilArcher extends Enemy {
     }
 
     @Override
-    public void hitOnHead(Player player) {
-
-    }
-
-    @Override
-    public void update(float deltaTime) {
-        if(b2body.getPosition().y < -10 || currentHealth <= 0) {
-            b2body.setActive(false);
-            isDead = true;
-        }
-        if(setToDestroy && !destroyed) {
-            world.destroyBody(b2body);
-            destroyed = true;
-        }
-        else if(!destroyed) {
-            //b2body.setLinearVelocity(velocity);
-
-            if(b2body.getLinearVelocity().y == 0 && shouldMove) {
-                this.move();
-            }
-
-            if(shouldMove == false) {
-                this.b2body.setLinearVelocity(0f, 0f);
-            }
-
-            if(isAwake) {
-                setPosition(b2body.getPosition().x - getWidth() / 2, b2body.getPosition().y - getHeight() / 2);
-                setRegion(getFrame(deltaTime));
-            }
-
-//            if(Math.abs(playerPosition.x - b2body.getPosition().x) > 10) {
-//                isAwake = false;
-//            } else {
-//                isAwake = true;
-//            }
-        }
-    }
-
-    @Override
     protected void attack() {
-    }
-
-    @Override
-    public void onEnemyHit(Enemy enemy) {
-
     }
 
     @Override

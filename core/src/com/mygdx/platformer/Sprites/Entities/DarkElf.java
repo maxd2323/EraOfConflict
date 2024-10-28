@@ -18,10 +18,6 @@ public class DarkElf extends Player {
                 Constants.DARK_ELF_STATS,
                 "DarkElf"
         );
-        attackCooldown = 2f;
-
-        setRegion((TextureRegion) animations.get("run").getKeyFrames()[0]);
-        setBounds(getX(), getY(), Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
     }
 
     @Override

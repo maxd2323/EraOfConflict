@@ -1,43 +1,55 @@
 package com.mygdx.platformer.Sprites.Entities;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.mygdx.platformer.Screens.Hud;
 import com.mygdx.platformer.Screens.PlayScreen;
-import com.mygdx.platformer.Sprites.Items.Item;
 
 public abstract class Entity extends Sprite {
     public enum State { FALLING, JUMPING, STANDING, RUNNING, DEAD, THROWING, HURT, SHOOTING, SLASHING };
 
     // Box2D Physics
-    public World world;
+    protected World world;
     public Body b2body;
-
     protected PlayScreen screen;
 
-    // States
-    public State currentState;
-    public State previousState;
-    public float stateTimer;
+    // Animation and Texture Management
+    protected ArrayMap<String, Animation> animations;
+    protected ArrayMap<String, TextureRegion> textures;
 
+    // Entity State Management
+    protected State currentState;
+    protected State previousState;
+    protected float stateTimer;
+
+    // Flags for Entity Status
     public boolean isDead;
-    public boolean facingRight;
+    protected boolean destroyed;
+    protected boolean setToDestroy;
+    protected boolean shouldMove;
 
+    // Combat and Attack Management
+    protected boolean inCombat;
+    protected Entity opponent;
+    protected float timeSinceLastAttack;
+
+    // Animation management
     protected boolean runAttackAnimation;
     protected boolean runThrowAnimation;
     protected boolean runHurtAnimation;
 
-    protected boolean shouldMove;
-    protected boolean destroyed;
-    protected boolean setToDestroy;
+    // Facing Direction
+    protected boolean facingRight;
+
+    // Stats
     protected float healthCapacity;
     protected float currentHealth;
     protected float magickaCapacity;
@@ -45,12 +57,10 @@ public abstract class Entity extends Sprite {
     protected float speed;
     protected float baseDamage;
     protected float attackCooldown;
-    protected boolean inCombat;
-    protected float timeSinceLastAttack;
-    protected Entity opponent;
-    protected ArrayMap<String, Animation> animations;
-    protected ArrayMap<String, TextureRegion> textures;
+
+    // Entity Identification
     protected String entityTag;
+
     public Entity(PlayScreen screen, EntityStats entityStats) {
         this(screen, 0f, 0f, entityStats, "entity");
     }
@@ -268,6 +278,46 @@ public abstract class Entity extends Sprite {
         else {
             return State.STANDING;
         }
+    }
+
+    protected void updateCombat(float deltaTime) {
+        if (inCombat && !runAttackAnimation) {
+            timeSinceLastAttack += deltaTime;
+            if (timeSinceLastAttack >= attackCooldown) {
+                attack();
+                timeSinceLastAttack = 0f;
+            }
+            if (opponent != null && opponent.isDead) {
+                inCombat = false;
+            }
+        }
+    }
+
+    protected void updatePositionAndBounds(float deltaTime) {
+        setPosition(b2body.getPosition().x - getWidth() / 2, b2body.getPosition().y - getHeight() / 2);
+        setRegion(getFrame(deltaTime));
+    }
+
+    protected void handleDestruction() {
+        if (setToDestroy && !destroyed) {
+            world.destroyBody(b2body);
+            destroyed = true;
+        }
+    }
+
+    protected void defineCommonBody(float radius, short categoryBits, short maskBits) {
+        BodyDef bDef = new BodyDef();
+        bDef.position.set(getX(), getY());
+        bDef.type = BodyDef.BodyType.DynamicBody;
+        b2body = world.createBody(bDef);
+
+        FixtureDef fDef = new FixtureDef();
+        CircleShape shape = new CircleShape();
+        shape.setRadius(radius);
+        fDef.filter.categoryBits = categoryBits;
+        fDef.filter.maskBits = maskBits;
+        fDef.shape = shape;
+        b2body.createFixture(fDef).setUserData(this);
     }
 
 

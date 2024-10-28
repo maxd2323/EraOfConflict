@@ -18,12 +18,6 @@ public class WorldContactListener implements ContactListener {
 
 
         switch (cDef) {
-            case Platformer.ENEMY_HEAD_BIT | Platformer.PLAYER_BIT:
-                if(fixA.getFilterData().categoryBits == Platformer.ENEMY_HEAD_BIT)
-                    ((Enemy) fixA.getUserData()).hitOnHead((Player) fixB.getUserData());
-                else
-                    ((Enemy) fixB.getUserData()).hitOnHead((Player) fixA.getUserData());
-                break;
             case Platformer.ENEMY_BIT | Platformer.ENEMY_BIT:
                 if (((Enemy) fixA.getUserData()).getX() < ((Enemy) fixB.getUserData()).getX()) {
                     ((Enemy) fixB.getUserData()).startFriendlyCollision();

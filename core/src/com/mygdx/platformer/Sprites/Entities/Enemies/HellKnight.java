@@ -3,14 +3,9 @@ package com.mygdx.platformer.Sprites.Entities.Enemies;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Screens.PlayScreen;
-import com.mygdx.platformer.Sprites.Entities.Player;
 import com.mygdx.platformer.Sprites.Projectiles.Projectile;
 import com.mygdx.platformer.utils.Constants;
 
@@ -24,25 +19,10 @@ public class HellKnight extends Enemy {
                 Constants.HELL_KNIGHT_STATS,
                 "HellKnight"
         );
-
-        setRegion((TextureRegion) animations.get("run").getKeyFrames()[0]);
-        setBounds(getX(), getY(), Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
     }
 
     @Override
     public void hit(Projectile projectile) {
-        runHurtAnimation = true;
-        applyDamage(projectile.damage);
-    }
-
-    @Override
-    public void hitOnHead(Player player) {
-
-    }
-
-    @Override
-    public void onEnemyHit(Enemy enemy) {
-
     }
 
     @Override
