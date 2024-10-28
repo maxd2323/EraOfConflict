@@ -17,14 +17,8 @@ import com.mygdx.platformer.utils.Constants;
 public class HellKnight extends Enemy {
 
     // Boolean flags
-    private boolean isAwake;
     private boolean runHurtAnimation;
-    private boolean runSlashingAnimation;
     public boolean facingRight;
-    public boolean isDead;
-    public boolean isCloseToPlayer;
-    private float swingCooldown = 1.0f;
-    private float baseDamage = 5f;
 
     private float stateTimer;
 
@@ -36,16 +30,12 @@ public class HellKnight extends Enemy {
                 Constants.HELL_KNIGHT_INITIAL_HEALTH,
                 Constants.HELL_KNIGHT_INITIAL_MAGICKA,
                 Constants.HELL_KNIGHT_INITIAL_SPEED,
+                Constants.HELL_KNIGHT_BASE_DAMAGE,
                 "HellKnight"
         );
-        stateTimer = 0;
-
-        currentState = State.STANDING;
-        previousState = State.STANDING;
-        runHurtAnimation = false;
         facingRight = true;
-        isDead = false;
-        isAwake = true;
+
+        attackCooldown = 5f;
 
         setRegion((TextureRegion) animations.get("run").getKeyFrames()[0]);
         setBounds(getX(), getY(), Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
@@ -86,9 +76,6 @@ public class HellKnight extends Enemy {
             case STANDING:
             default:
                 region = (TextureRegion) animations.get("run").getKeyFrame(stateTimer, true);
-                if(stateTimer > 5 && isCloseToPlayer) {
-                    slash();
-                }
                 break;
         }
         if((b2body.getLinearVelocity().x < 0 || !facingRight) && !region.isFlipX()) {
@@ -99,7 +86,7 @@ public class HellKnight extends Enemy {
             region.flip(true, false);
             facingRight = true;
         }
-        stateTimer = (currentState == previousState) && isAwake ? stateTimer + deltaTime : 0;
+        stateTimer = (currentState == previousState) ? stateTimer + deltaTime : 0;
         previousState = currentState;
         return region;
     }
@@ -107,7 +94,7 @@ public class HellKnight extends Enemy {
     public State getState() {
         if(isDead) {
             return State.DEAD;
-        } else if(runSlashingAnimation) {
+        } else if(runAttackAnimation) {
             return State.SLASHING;
         }
         else if(runHurtAnimation) {
@@ -124,28 +111,6 @@ public class HellKnight extends Enemy {
         }
     }
 
-    public void slash() {
-        opponent.applyDamage(baseDamage);
-        runSlashingAnimation = true;
-    }
-
-    @Override
-    protected void defineEnemy() {
-        BodyDef bDef = new BodyDef();
-        bDef.position.set(getX(), getY());
-        bDef.type = BodyDef.BodyType.DynamicBody;
-        b2body = world.createBody(bDef);
-
-        FixtureDef fDef = new FixtureDef();
-        CircleShape shape = new CircleShape();
-        shape.setRadius(Platformer.getTileMultiplier(0.375f));
-        fDef.filter.categoryBits = Platformer.ENEMY_BIT;
-        fDef.filter.maskBits = Platformer.GROUND_BIT | Platformer.COIN_BIT | Platformer.BRICK_BIT | Platformer.ENEMY_BIT | Platformer.OBJECT_BIT | Platformer.PLAYER_BIT | Platformer.PROJECTILE_BIT;
-
-        fDef.shape = shape;
-        b2body.createFixture(fDef).setUserData(this);
-    }
-
     @Override
     public void hit(Projectile projectile) {
         runHurtAnimation = true;
@@ -155,41 +120,6 @@ public class HellKnight extends Enemy {
     @Override
     public void hitOnHead(Player player) {
 
-    }
-
-    @Override
-    public void update(float deltaTime) {
-        stateTimer += deltaTime;
-        if(b2body.getPosition().y < -10 || currentHealth <= 0) {
-            b2body.setActive(false);
-            isDead = true;
-        }
-        if(setToDestroy && !destroyed) {
-            world.destroyBody(b2body);
-            destroyed = true;
-        }
-        else if(!destroyed) {
-            if(b2body.getLinearVelocity().y == 0 && shouldMove) {
-                this.moveLeft();
-            }
-
-            if(shouldMove == false) {
-                this.b2body.setLinearVelocity(0f, 0f);
-            }
-
-            if(isAwake) {
-                setPosition(b2body.getPosition().x - getWidth() / 2, b2body.getPosition().y - getHeight() / 2);
-                setRegion(getFrame(deltaTime));
-            }
-        }
-
-        if (inCombat) {
-            timeSinceLastAttack += deltaTime;
-            if (timeSinceLastAttack >= swingCooldown) {
-                slash();
-                timeSinceLastAttack = 0f;
-            }
-        }
     }
 
     @Override

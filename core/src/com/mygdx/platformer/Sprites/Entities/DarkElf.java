@@ -18,12 +18,10 @@ public class DarkElf extends Player {
                 Constants.PLAYER_INITIAL_HEALTH,
                 Constants.PLAYER_INITIAL_MAGICKA,
                 Constants.PLAYER_INITIAL_SPEED,
+                Constants.DARK_ELF_BASE_DAMAGE,
                 "DarkElf"
         );
-        stateTimer = 0;
-
-        currentState = State.STANDING;
-        previousState = State.STANDING;
+        attackCooldown = 2f;
 
         setRegion((TextureRegion) animations.get("run").getKeyFrames()[0]);
         setBounds(getX(), getY(), Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
@@ -41,12 +39,14 @@ public class DarkElf extends Player {
         Animation playerDead = new Animation(0.1f, screen.getAtlas("Dark Elf").findRegions("0_Dark_Elves_Dying"));
         Animation playerThrow = new Animation(0.05f, screen.getAtlas("Dark Elf").findRegions("0_Dark_Elves_Throwing"));
         Animation playerHurt = new Animation(0.05f, screen.getAtlas("Dark Elf").findRegions("0_Dark_Elves_Hurt"));
+        Animation playerSlash = new Animation(0.05f, screen.getAtlas("Dark Elf").findRegions("0_Dark_Elves_Throwing"));
 
         animations = new ArrayMap<>();
         animations.put("run", playerRun);
         animations.put("dead", playerDead);
         animations.put("throw", playerThrow);
         animations.put("hurt", playerHurt);
+        animations.put("slash", playerSlash);
     }
 
 }

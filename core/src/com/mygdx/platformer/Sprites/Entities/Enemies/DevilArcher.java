@@ -3,10 +3,6 @@ package com.mygdx.platformer.Sprites.Entities.Enemies;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Screens.PlayScreen;
@@ -21,7 +17,6 @@ public class DevilArcher extends Enemy {
     private boolean isAwake;
     private boolean runHurtAnimation;
     private boolean runShootingAnimation;
-    public boolean facingRight;
 
     private float stateTimer;
 
@@ -32,15 +27,11 @@ public class DevilArcher extends Enemy {
                 y,
                 Constants.DEVIL_ARCHER_INITIAL_HEALTH,
                 Constants.DEVIL_ARCHER_INITIAL_MAGICKA,
-                Constants.DEVIL_ARCHER_INITIAL_SPEED
+                Constants.DEVIL_ARCHER_INITIAL_SPEED,
+                Constants.DEVIL_ARCHER_BASE_DAMAGE,
+                "DevilArcher"
         );
-        stateTimer = 0;
-
-        currentState = State.STANDING;
-        previousState = State.STANDING;
         runHurtAnimation = false;
-        facingRight = true;
-        isDead = false;
         isAwake = true;
 
         setRegion((TextureRegion) animations.get("idle").getKeyFrames()[0]);
@@ -129,23 +120,6 @@ public class DevilArcher extends Enemy {
     }
 
     @Override
-    protected void defineEnemy() {
-        BodyDef bDef = new BodyDef();
-        bDef.position.set(getX(), getY());
-        bDef.type = BodyDef.BodyType.DynamicBody;
-        b2body = world.createBody(bDef);
-
-        FixtureDef fDef = new FixtureDef();
-        CircleShape shape = new CircleShape();
-        shape.setRadius(Platformer.getTileMultiplier(0.375f));
-        fDef.filter.categoryBits = Platformer.ENEMY_BIT;
-        fDef.filter.maskBits = Platformer.GROUND_BIT | Platformer.COIN_BIT | Platformer.BRICK_BIT | Platformer.ENEMY_BIT | Platformer.OBJECT_BIT | Platformer.PLAYER_BIT | Platformer.PROJECTILE_BIT;
-
-        fDef.shape = shape;
-        b2body.createFixture(fDef).setUserData(this);
-    }
-
-    @Override
     public void hit(Projectile projectile) {
         runHurtAnimation = true;
         applyDamage(projectile.damage);
@@ -158,7 +132,6 @@ public class DevilArcher extends Enemy {
 
     @Override
     public void update(float deltaTime) {
-        stateTimer += deltaTime;
         if(b2body.getPosition().y < -10 || currentHealth <= 0) {
             b2body.setActive(false);
             isDead = true;
@@ -171,7 +144,7 @@ public class DevilArcher extends Enemy {
             //b2body.setLinearVelocity(velocity);
 
             if(b2body.getLinearVelocity().y == 0 && shouldMove) {
-                this.moveLeft();
+                this.move();
             }
 
             if(shouldMove == false) {
@@ -189,6 +162,10 @@ public class DevilArcher extends Enemy {
 //                isAwake = true;
 //            }
         }
+    }
+
+    @Override
+    protected void attack() {
     }
 
     @Override

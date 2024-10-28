@@ -24,21 +24,25 @@ public class WorldContactListener implements ContactListener {
                 else
                     ((Enemy) fixB.getUserData()).hitOnHead((Player) fixA.getUserData());
                 break;
-            case Platformer.ENEMY_BIT | Platformer.OBJECT_BIT:
-                if(fixA.getFilterData().categoryBits == Platformer.ENEMY_BIT)
-                    ((Enemy) fixA.getUserData()).reverseVelocity(true, false);
-                else
-                    ((Enemy) fixB.getUserData()).reverseVelocity(true, false);
-                break;
             case Platformer.ENEMY_BIT | Platformer.ENEMY_BIT:
-                ((Enemy) fixA.getUserData()).onEnemyHit((Enemy) fixB.getUserData());
-                ((Enemy) fixB.getUserData()).onEnemyHit((Enemy) fixB.getUserData());
+                if (((Enemy) fixA.getUserData()).getX() < ((Enemy) fixB.getUserData()).getX()) {
+                    ((Enemy) fixB.getUserData()).startFriendlyCollision();
+                } else {
+                    ((Enemy) fixA.getUserData()).startFriendlyCollision();
+                }
                 break;
             case Platformer.ITEM_BIT | Platformer.PLAYER_BIT:
                 if(fixA.getFilterData().categoryBits == Platformer.ITEM_BIT)
                     ((Item) fixA.getUserData()).use((Player) fixB.getUserData());
                 else
                     ((Item) fixB.getUserData()).use((Player) fixA.getUserData());
+                break;
+            case Platformer.PLAYER_BIT | Platformer.PLAYER_BIT:
+                if (((Player) fixA.getUserData()).getX() > ((Player) fixB.getUserData()).getX()) {
+                    ((Player) fixB.getUserData()).startFriendlyCollision();
+                } else {
+                    ((Player) fixA.getUserData()).startFriendlyCollision();
+                }
                 break;
             case Platformer.PLAYER_BIT | Platformer.ENEMY_BIT:
                 if(fixA.getFilterData().categoryBits == Platformer.PLAYER_BIT) {
@@ -88,6 +92,14 @@ public class WorldContactListener implements ContactListener {
                     ((Player) fixB.getUserData()).stopCombat();
                     ((Enemy) fixA.getUserData()).stopCombat();
                 }
+                break;
+            case Platformer.PLAYER_BIT | Platformer.PLAYER_BIT:
+                ((Player) fixA.getUserData()).endFriendlyCollision();
+                ((Player) fixB.getUserData()).endFriendlyCollision();
+                break;
+            case Platformer.ENEMY_BIT | Platformer.ENEMY_BIT:
+                ((Enemy) fixA.getUserData()).endFriendlyCollision();
+                ((Enemy) fixB.getUserData()).endFriendlyCollision();
                 break;
         }
     }

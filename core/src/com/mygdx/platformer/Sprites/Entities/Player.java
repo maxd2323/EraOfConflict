@@ -1,27 +1,19 @@
 package com.mygdx.platformer.Sprites.Entities;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
-import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.platformer.Platformer;
-import com.mygdx.platformer.Screens.Hud;
 import com.mygdx.platformer.Screens.PlayScreen;
 
 public class Player extends Entity {
 
     // Boolean Flags
-    private boolean runningRight;
     private boolean runThrowAnimation;
     private boolean runHurtAnimation;
 
     // Other
     public int jumpCount;
-    private PlayScreen screen;
-    private float swingCooldown = 1.0f;  // 1 second between swings
-    private Entity opponent;
 
 
     public Player(
@@ -30,28 +22,10 @@ public class Player extends Entity {
             float y,
             float health,
             float magicka,
-            float speed
+            float speed,
+            float baseDamage
     ) {
-        super(
-                screen,
-                health,
-                magicka,
-                speed,
-                "Player"
-        );
-        this.world = screen.getWorld();
-        this.screen = screen;
-
-        runningRight = true;
-
-        definePlayer();
-
-        setPosition(x, y);
-        setBounds(0, 0, Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
-        setRegion(textures.get("stand"));
-
-        Hud.setHealth((int) currentHealth);
-        Hud.setMagicka((int) currentMagicka);
+        this(screen, x, y, health, magicka, speed, baseDamage, "Player");
     }
 
     public Player(
@@ -61,28 +35,25 @@ public class Player extends Entity {
             float health,
             float magicka,
             float speed,
+            float baseDamage,
             String entityTag
     ) {
         super(
                 screen,
+                x,
+                y,
                 health,
                 magicka,
                 speed,
+                baseDamage,
                 entityTag
         );
-        this.world = screen.getWorld();
-        this.screen = screen;
 
-        runningRight = true;
+        attackCooldown = 5f;
+        facingRight = true;
 
-        definePlayer();
-
-        setPosition(x, y);
         setBounds(0, 0, Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
         setRegion(textures.get("stand"));
-
-        Hud.setHealth((int) currentHealth);
-        Hud.setMagicka((int) currentMagicka);
     }
 
     // Getters
@@ -98,6 +69,12 @@ public class Player extends Entity {
                     setToDestroy = true;
                 }
                 break;
+            case SLASHING:
+                region = (TextureRegion) animations.get("slash").getKeyFrame(stateTimer, false);
+                if(animations.get("slash").isAnimationFinished(stateTimer) && stateTimer > 5){
+                    currentState = State.STANDING;
+                }
+                break;
             case JUMPING:
                 region = textures.get("jump");
                 break;
@@ -106,9 +83,9 @@ public class Player extends Entity {
                 break;
             case THROWING:
                 region = (TextureRegion) animations.get("throw").getKeyFrame(stateTimer);
-                if(runningRight && !region.isFlipX()) {
+                if(facingRight && !region.isFlipX()) {
                     region.flip(true, false);
-                } else if(!runningRight && region.isFlipX()) {
+                } else if(!facingRight && region.isFlipX()) {
                     region.flip(true, false);
                 }
                 if(animations.get("throw").isAnimationFinished(stateTimer)){
@@ -117,9 +94,9 @@ public class Player extends Entity {
                 break;
             case HURT:
                 region = (TextureRegion) animations.get("hurt").getKeyFrame(stateTimer);
-                if(runningRight && !region.isFlipX()) {
+                if(facingRight && !region.isFlipX()) {
                     region.flip(true, false);
-                } else if(!runningRight && region.isFlipX()) {
+                } else if(!facingRight && region.isFlipX()) {
                     region.flip(true, false);
                 }
                 if(animations.get("hurt").isAnimationFinished(stateTimer)){
@@ -132,14 +109,6 @@ public class Player extends Entity {
                 region = textures.get("stand");;
                 break;
         }
-        if((b2body.getLinearVelocity().x < 0 || !runningRight) && !region.isFlipX()) {
-            region.flip(true, false);
-            runningRight = false;
-        }
-        else if((b2body.getLinearVelocity().x > 0 || runningRight) && region.isFlipX()) {
-            region.flip(true, false);
-            runningRight = true;
-        }
         stateTimer = currentState == previousState ? stateTimer + deltaTime : 0;
         previousState = currentState;
         return region;
@@ -148,8 +117,9 @@ public class Player extends Entity {
     public State getState() {
         if(isDead) {
             return State.DEAD;
-        }
-        else if(runThrowAnimation) {
+        } else if (runAttackAnimation) {
+            return State.SLASHING;
+        } else if(runThrowAnimation) {
             return State.THROWING;
         }
         else if(runHurtAnimation) {
@@ -169,12 +139,7 @@ public class Player extends Entity {
         }
     }
 
-    public void moveRight() {
-        this.b2body.setLinearVelocity(new Vector2(1.5f, 0));
-    }
-
     public void update(float deltaTime) {
-        Hud.setHealth((int) currentHealth);
         setPosition(b2body.getPosition().x - getWidth() / 2, b2body.getPosition().y - getHeight() / 2 + 8 / Platformer.PPM);
         setRegion(getFrame(deltaTime));
         incrementMagicka(1f);
@@ -185,25 +150,34 @@ public class Player extends Entity {
         }
 
         if(b2body.getLinearVelocity().y == 0 && shouldMove) {
-            this.moveRight();
+            move();
         }
 
         if(shouldMove == false) {
             this.b2body.setLinearVelocity(0f, 0f);
         }
 
-        if(b2body.getPosition().y < -10) {
-            isDead = true;
+        if(b2body.getPosition().y < -10 || currentHealth <= 0) {
+            die();
         }
         if(currentState == State.STANDING || currentState == State.RUNNING) {
             jumpCount = 0;
         }
-        if(currentHealth <= 0) {
-            isDead = true;
+
+        if (inCombat) {
+            timeSinceLastAttack += deltaTime;
+            if (timeSinceLastAttack >= attackCooldown) {
+                attack();
+                timeSinceLastAttack = 0f;
+            }
+            if (opponent.isDead) {
+                inCombat = false;
+            }
         }
     }
 
-    public void definePlayer() {
+    @Override
+    protected void defineEntity() {
         BodyDef bDef = new BodyDef();
         bDef.position.set(Platformer.getTileMultiplier(2f), Platformer.getTileMultiplier(2f));
         bDef.type = BodyDef.BodyType.DynamicBody;

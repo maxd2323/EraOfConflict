@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
@@ -20,12 +21,17 @@ public abstract class Entity extends Sprite {
     public World world;
     public Body b2body;
 
+    protected PlayScreen screen;
+
     // States
     public State currentState;
     public State previousState;
     public float stateTimer;
 
     public boolean isDead;
+    public boolean facingRight;
+
+    protected boolean runAttackAnimation;
 
     protected boolean shouldMove;
     protected boolean destroyed;
@@ -35,34 +41,24 @@ public abstract class Entity extends Sprite {
     protected float magickaCapacity;
     protected float currentMagicka;
     protected float speed;
+    protected float baseDamage;
+    protected float attackCooldown;
     protected boolean inCombat = false;
     protected float timeSinceLastAttack;
     protected Entity opponent;
     protected ArrayMap<String, Animation> animations;
     protected ArrayMap<String, TextureRegion> textures;
     protected String entityTag;
-    public Entity(PlayScreen screen, float health, float magicka, float speed) {
-        super();
-        loadTexturesAndAnimations(screen);
-        healthCapacity = health;
-        currentHealth = health;
-        magickaCapacity = magicka;
-        currentMagicka = magicka;
-        this.speed = speed;
-        destroyed = false;
-        setToDestroy = false;
-        timeSinceLastAttack = 0f;
-        currentState = State.STANDING;
-        previousState = State.STANDING;
-        stateTimer = 0;
-        shouldMove = true;
-        isDead = false;
-        entityTag = "entity";
+    public Entity(PlayScreen screen, float health, float magicka, float baseDamage, float speed) {
+        this(screen, 0f, 0f, health, magicka, speed, baseDamage, "entity");
     }
 
-    public Entity(PlayScreen screen, float health, float magicka, float speed, String entityTag) {
+    public Entity(PlayScreen screen, float x, float y, float health, float magicka, float speed, float baseDamage, String entityTag) {
         super();
+        this.world = screen.getWorld();
+        this.screen = screen;
         loadTexturesAndAnimations(screen);
+        setPosition(x, y);
         healthCapacity = health;
         currentHealth = health;
         magickaCapacity = magicka;
@@ -76,7 +72,40 @@ public abstract class Entity extends Sprite {
         stateTimer = 0;
         shouldMove = true;
         isDead = false;
+        attackCooldown = 5f;
+        this.baseDamage = baseDamage;
+        facingRight = true;
         this.entityTag = entityTag;
+        defineEntity();
+        //logEntity();
+    }
+
+    private void logEntity() {
+        Gdx.app.log(entityTag, "Entity instantiated with properties: " +
+                "healthCapacity=" + healthCapacity +
+                ", currentHealth=" + currentHealth +
+                ", magickaCapacity=" + magickaCapacity +
+                ", currentMagicka=" + currentMagicka +
+                ", speed=" + speed +
+                ", destroyed=" + destroyed +
+                ", setToDestroy=" + setToDestroy +
+                ", timeSinceLastAttack=" + timeSinceLastAttack +
+                ", currentState=" + currentState +
+                ", previousState=" + previousState +
+                ", stateTimer=" + stateTimer +
+                ", shouldMove=" + shouldMove +
+                ", isDead=" + isDead +
+                ", baseDamage=" + baseDamage +
+                ", facingRight=" + facingRight +
+                ", entityTag=" + entityTag
+        );
+    }
+
+    public void move() {
+        if (b2body != null && b2body.isActive()) {
+            float multiple = facingRight ? 1 : -1;
+            b2body.setLinearVelocity(new Vector2(speed * multiple, 0));
+        }
     }
 
     public void die() {
@@ -97,7 +126,6 @@ public abstract class Entity extends Sprite {
         if(this.currentHealth > healthCapacity) {
             this.currentHealth = healthCapacity;
         }
-        Hud.setHealth((int) currentHealth);
     }
 
     protected void incrementMagicka(float magicka) {
@@ -109,7 +137,6 @@ public abstract class Entity extends Sprite {
         if(this.currentMagicka < 0) {
             this.currentMagicka = 0;
         }
-        Hud.setMagicka((int) currentMagicka);
     }
 
     public void startCombat(Entity opponent) {
@@ -124,12 +151,20 @@ public abstract class Entity extends Sprite {
         inCombat = false;
         opponent = null;
         shouldMove = true;
+        runAttackAnimation = false;
     }
 
-    private void swingSword() {
-        if (opponent != null) {
-            opponent.applyDamage(5f);
-        }
+    public void startFriendlyCollision () {
+        shouldMove = false;
+    }
+
+    public void endFriendlyCollision () {
+        shouldMove = true;
+    }
+
+    protected void attack() {
+        opponent.applyDamage(baseDamage);
+        runAttackAnimation = true;
     }
 
 
@@ -138,4 +173,5 @@ public abstract class Entity extends Sprite {
     }
 
     public abstract void loadTexturesAndAnimations(PlayScreen screen);
+    protected abstract void defineEntity();
 }
