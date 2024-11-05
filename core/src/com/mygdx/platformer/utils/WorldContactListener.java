@@ -3,6 +3,7 @@ package com.mygdx.platformer.utils;
 import com.badlogic.gdx.physics.box2d.*;
 import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Sprites.Entities.Enemies.Enemy;
+import com.mygdx.platformer.Sprites.Entities.Entity;
 import com.mygdx.platformer.Sprites.Projectiles.Projectile;
 import com.mygdx.platformer.Sprites.Items.Item;
 import com.mygdx.platformer.Sprites.Entities.Player;
@@ -24,6 +25,8 @@ public class WorldContactListener implements ContactListener {
                 } else {
                     ((Enemy) fixA.getUserData()).startFriendlyCollision();
                 }
+                ((Entity) fixA.getUserData()).b2body.setLinearVelocity(0, 0);
+                ((Entity) fixB.getUserData()).b2body.setLinearVelocity(0, 0);
                 break;
             case Platformer.ITEM_BIT | Platformer.PLAYER_BIT:
                 if(fixA.getFilterData().categoryBits == Platformer.ITEM_BIT)
@@ -37,6 +40,12 @@ public class WorldContactListener implements ContactListener {
                 } else {
                     ((Player) fixA.getUserData()).startFriendlyCollision();
                 }
+                Entity entityA = (Entity) fixA.getUserData();
+                Entity entityB = (Entity) fixB.getUserData();
+
+                // Stop both entities
+                ((Entity) fixA.getUserData()).b2body.setLinearVelocity(0, 0);
+                ((Entity) fixB.getUserData()).b2body.setLinearVelocity(0, 0);
                 break;
             case Platformer.PLAYER_BIT | Platformer.ENEMY_BIT:
                 if(fixA.getFilterData().categoryBits == Platformer.PLAYER_BIT) {
@@ -47,6 +56,8 @@ public class WorldContactListener implements ContactListener {
                     ((Player) fixB.getUserData()).startCombat((Enemy) fixA.getUserData());
                     ((Enemy) fixA.getUserData()).startCombat((Player) fixB.getUserData());
                 }
+                ((Entity) fixA.getUserData()).b2body.setLinearVelocity(0, 0);
+                ((Entity) fixB.getUserData()).b2body.setLinearVelocity(0, 0);
                 break;
             case Platformer.PROJECTILE_BIT | Platformer.ENEMY_BIT:
                 if(fixA.getFilterData().categoryBits == Platformer.PROJECTILE_BIT)

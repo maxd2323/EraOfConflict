@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Screens.PlayScreen;
 import com.mygdx.platformer.utils.Constants;
 
@@ -16,7 +15,8 @@ public class DarkElf extends Player {
                 x,
                 y,
                 Constants.DARK_ELF_STATS,
-                "DarkElf"
+                "DarkElf",
+                40
         );
     }
 
@@ -29,7 +29,7 @@ public class DarkElf extends Player {
         textures.put("stand", playerStand);
 
         Animation playerRun = new Animation(0.1f, screen.getAtlas("Dark Elf").findRegions("0_Dark_Elves_Running"));
-        Animation playerDead = new Animation(0.1f, screen.getAtlas("Dark Elf").findRegions("0_Dark_Elves_Dying"));
+        Animation playerDead = new Animation(0.05f, screen.getAtlas("Dark Elf").findRegions("0_Dark_Elves_Dying"));
         Animation playerThrow = new Animation(0.05f, screen.getAtlas("Dark Elf").findRegions("0_Dark_Elves_Throwing"));
         Animation playerHurt = new Animation(0.05f, screen.getAtlas("Dark Elf").findRegions("0_Dark_Elves_Hurt"));
         Animation playerSlash = new Animation(0.05f, screen.getAtlas("Dark Elf").findRegions("0_Dark_Elves_Throwing"));

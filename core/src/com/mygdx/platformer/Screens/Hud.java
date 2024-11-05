@@ -70,7 +70,7 @@ public class Hud implements Disposable {
 
     private void createInventoryBar(Inventory currentInventory) {
         int inventorySpaces = 9;
-        for(int i = 0; i<inventorySpaces; i++) {
+        for(int i = 0; i < inventorySpaces; i++) {
             Image inventoryBox = new Image();
             inventoryBox.setDrawable(new TextureRegionDrawable(new Texture(
                     i == currentInventory.selectedIndex ?
@@ -82,7 +82,7 @@ public class Hud implements Disposable {
             inventoryBox.setPosition((i*50)+50, 300);
             stage.addActor(inventoryBox);
         }
-        for(int i = 0; i<currentInventory.size; i++) {
+        for(int i = 0; i < currentInventory.size; i++) {
             if(currentInventory.get(i).isPresent()) {
                 InventoryItem inventoryItem = currentInventory.get(i).get();
                 Image inventoryBox = new Image();

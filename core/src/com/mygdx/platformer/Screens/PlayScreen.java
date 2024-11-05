@@ -19,13 +19,17 @@ import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Sprites.Entities.DarkElf;
 import com.mygdx.platformer.Sprites.Entities.Enemies.Enemy;
 import com.mygdx.platformer.Sprites.Entities.Enemies.HellKnight;
+import com.mygdx.platformer.Sprites.Entities.Entity;
 import com.mygdx.platformer.Sprites.Entities.Player;
 import com.mygdx.platformer.Sprites.Items.*;
 import com.mygdx.platformer.Sprites.Projectiles.Projectile;
 import com.mygdx.platformer.utils.B2WorldCreator;
+import com.mygdx.platformer.utils.DataStructures.EntityInventory;
 import com.mygdx.platformer.utils.DataStructures.Inventory;
+import com.mygdx.platformer.utils.EnemySpawner;
 import com.mygdx.platformer.utils.WorldContactListener;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class PlayScreen implements Screen {
@@ -47,12 +51,13 @@ public class PlayScreen implements Screen {
 
     private Music music;
 
+    private Array<EnemySpawner> spawners;
     private Array<Item> items;
     private Array<Projectile> projectiles;
     private Array<Player> playerEntities;
     private Array<Enemy> enemies;
     private LinkedBlockingQueue<ItemDef> itemsToSpawn;
-    public Inventory inventory;
+    public EntityInventory entityInventory;
 
     private TextureAtlas darkElfAtlas;
     private TextureAtlas devilArcherAtlas;
@@ -89,15 +94,16 @@ public class PlayScreen implements Screen {
         projectiles = new Array<Projectile>();
         playerEntities = new Array<Player>();
         enemies = new Array<Enemy>();
+        spawners = new Array<EnemySpawner>();
 
-        inventory = new Inventory(9);
+        entityInventory = new EntityInventory(9);
 
         tempInitializeWorld();
     }
 
     private void tempInitializeWorld() {
-        hellKnight = new HellKnight(this, 20, 3);
-        enemies.add(hellKnight);
+        entityInventory.addIfSpace(DarkElf.class);
+        spawners.add(new EnemySpawner(this, 20, 3, 5.0f, HellKnight.class));
     }
 
     public void redrawHud(Inventory inventory) {
@@ -117,6 +123,10 @@ public class PlayScreen implements Screen {
 
     public void spawnItem(ItemDef itemDef) {
         itemsToSpawn.add(itemDef);
+    }
+
+    public void spawnEnemy(Enemy enemy) {
+        enemies.add(enemy);
     }
 
     public void handleSpawningItems() {
@@ -167,7 +177,13 @@ public class PlayScreen implements Screen {
 
             for (int i = 0; i < 9; i++) {
                 if (Gdx.input.isKeyJustPressed(Input.Keys.valueOf(String.valueOf(i + 1)))) {
-                    setSelectedInventorySpace(i);
+                    Player newEntity = entityInventory.spawnSelectedInventorySpace(i, this, 1, 3);
+                    if (newEntity != null && rechargePoints >= newEntity.cost) {
+                        playerEntities.add(newEntity);
+                        rechargePoints -= darkElfCost;
+                    } else {
+                        System.out.println("Not enough recharge points to buy entity!");
+                    }
                 }
             }
         }
@@ -182,6 +198,10 @@ public class PlayScreen implements Screen {
         hud.setRechargePoints(rechargePoints);
 
         world.step(1/60f, 6, 4);
+
+        for (EnemySpawner spawner: spawners) {
+            spawner.update(dt);
+        }
 
         for (Player player : playerEntities) {
             player.update(dt);
@@ -211,7 +231,7 @@ public class PlayScreen implements Screen {
         hud.update(dt);
 
         if (playerEntities.size > 0) {
-            gameCam.position.x = playerEntities.get(playerEntities.size - 1).b2body.getPosition().x;
+            gameCam.position.x = playerEntities.get(0).b2body.getPosition().x;
         }
         gameCam.update();
 
@@ -260,14 +280,14 @@ public class PlayScreen implements Screen {
     }
 
     public void setSelectedInventorySpace(int i) {
-        inventory.selectedIndex = i;
-        redrawHud(inventory);
+        entityInventory.selectedIndex = i;
+        redrawHud(entityInventory);
     }
 
-    public boolean addItemToInventory(Item item, Class rootClass) {
-        boolean addSuccess = inventory.addIfSpace(item, rootClass);
+    public boolean addItemToEntityInventory(Item item, Class rootClass) {
+        boolean addSuccess = entityInventory.addIfSpace(item, rootClass);
         if (addSuccess) {
-            redrawHud(inventory);
+            redrawHud(entityInventory);
         }
         return addSuccess;
     }

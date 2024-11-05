@@ -196,7 +196,7 @@ public abstract class Entity extends Sprite {
         switch (currentState) {
             case DEAD:
                 region = (TextureRegion) animations.get("dead").getKeyFrame(stateTimer, false);
-                if(animations.get("dead").isAnimationFinished(stateTimer) && stateTimer > 5){
+                if(animations.get("dead").isAnimationFinished(stateTimer) && stateTimer > 1){
                     setToDestroy = true;
                 }
                 break;
@@ -242,13 +242,8 @@ public abstract class Entity extends Sprite {
                 region = textures.get("stand");;
                 break;
         }
-        if((b2body.getLinearVelocity().x < 0 || !facingRight) && !region.isFlipX()) {
+        if(!facingRight && !region.isFlipX()) {
             region.flip(true, false);
-            facingRight = false;
-        }
-        else if((b2body.getLinearVelocity().x > 0 || facingRight) && region.isFlipX()) {
-            region.flip(true, false);
-            facingRight = true;
         }
         stateTimer = currentState == previousState ? stateTimer + deltaTime : 0;
         previousState = currentState;
@@ -314,6 +309,13 @@ public abstract class Entity extends Sprite {
         FixtureDef fDef = new FixtureDef();
         CircleShape shape = new CircleShape();
         shape.setRadius(radius);
+
+        // Set restitution to zero to reduce bounce
+        fDef.restitution = 0f;
+
+        // Set friction to a higher value to help stickiness on collision
+        fDef.friction = 0.9f;
+
         fDef.filter.categoryBits = categoryBits;
         fDef.filter.maskBits = maskBits;
         fDef.shape = shape;

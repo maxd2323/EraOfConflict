@@ -34,7 +34,7 @@ public class HellKnight extends Enemy {
         textures.put("stand", hellKnightStand);
 
         Animation walk = new Animation(0.1f, screen.getAtlas("Hell Knight").findRegions("0_Hell_Knight_Walking"));
-        Animation dead = new Animation(0.1f, screen.getAtlas("Hell Knight").findRegions("0_Hell_Knight_Dying"));
+        Animation dead = new Animation(0.05f, screen.getAtlas("Hell Knight").findRegions("0_Hell_Knight_Dying"));
         Animation slash = new Animation(0.05f, screen.getAtlas("Hell Knight").findRegions("0_Hell_Knight_Slashing"));
         // Animation idle = new Animation(0.1f, screen.getAtlas("Hell Knight").findRegions("0_Hell_Knight_Idle"));
 

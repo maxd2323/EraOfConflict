@@ -1,16 +1,20 @@
 package com.mygdx.platformer.Sprites.Entities;
 
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Screens.PlayScreen;
 
 public abstract class Player extends Entity {
+    public float cost;
+    public static TextureRegion textureRegion = new TextureRegion(new Texture("sprites/dark_elf/raw/Idle/0_Dark_Elves_Idle_000.png"));;
     public Player(
             PlayScreen screen,
             float x,
             float y,
             EntityStats entityStats
     ) {
-        this(screen, x, y, entityStats, "Player");
+        this(screen, x, y, entityStats, "Player", 1);
     }
 
     public Player(
@@ -18,7 +22,8 @@ public abstract class Player extends Entity {
             float x,
             float y,
             EntityStats entityStats,
-            String entityTag
+            String entityTag,
+            float cost
     ) {
         super(
                 screen,
@@ -30,6 +35,7 @@ public abstract class Player extends Entity {
 
         setBounds(0, 0, Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
         setRegion(textures.get("stand"));
+        this.cost = cost;
     }
 
     // Getters
@@ -50,6 +56,10 @@ public abstract class Player extends Entity {
         if (b2body.getPosition().y < -10 || currentHealth <= 0) {
             die();
         }
+    }
+
+    public void setCost(float c) {
+        cost = c;
     }
 
 
