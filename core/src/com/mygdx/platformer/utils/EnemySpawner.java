@@ -3,6 +3,7 @@ package com.mygdx.platformer.utils;
 import com.badlogic.gdx.Gdx;
 import com.mygdx.platformer.Screens.PlayScreen;
 import com.mygdx.platformer.Sprites.Entities.Enemies.Enemy;
+import com.mygdx.platformer.utils.DataStructures.EntityFactory;
 
 public class EnemySpawner {
     private PlayScreen screen;
@@ -33,7 +34,7 @@ public class EnemySpawner {
     private void spawnEnemy() {
         try {
             // Instantiate the enemy using reflection, passing in the PlayScreen, spawnX, and spawnY
-            Enemy enemy = enemyClass.getConstructor(PlayScreen.class, float.class, float.class).newInstance(screen, spawnX, spawnY);
+            Enemy enemy = (Enemy) EntityFactory.createEntity(enemyClass, screen, spawnX, spawnY);
             screen.spawnEnemy(enemy);  // Add the enemy to PlayScreen’s enemy list
         } catch (Exception e) {
             e.printStackTrace();

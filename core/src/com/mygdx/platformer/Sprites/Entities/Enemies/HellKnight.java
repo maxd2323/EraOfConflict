@@ -4,19 +4,19 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Screens.PlayScreen;
+import com.mygdx.platformer.Sprites.Entities.EntityStats;
 import com.mygdx.platformer.Sprites.Projectiles.Projectile;
 import com.mygdx.platformer.utils.Constants;
 
 public class HellKnight extends Enemy {
 
-    public HellKnight(PlayScreen screen, float x, float y) {
+    public HellKnight(PlayScreen screen, float x, float y, EntityStats entityStats) {
         super(
                 screen,
                 x,
                 y,
-                Constants.HELL_KNIGHT_STATS,
+                entityStats,
                 "HellKnight"
         );
     }

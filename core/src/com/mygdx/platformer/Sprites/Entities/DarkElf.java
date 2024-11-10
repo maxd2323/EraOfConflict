@@ -9,12 +9,14 @@ import com.mygdx.platformer.utils.Constants;
 
 public class DarkElf extends Player {
 
-    public DarkElf(PlayScreen screen, float x, float y) {
+    public static TextureRegion textureRegion = new TextureRegion(new Texture("sprites/dark_elf/raw/Idle/0_Dark_Elves_Idle_000.png"));;
+
+    public DarkElf(PlayScreen screen, float x, float y, EntityStats entityStats) {
         super(
                 screen,
                 x,
                 y,
-                Constants.DARK_ELF_STATS,
+                entityStats,
                 "DarkElf",
                 40
         );

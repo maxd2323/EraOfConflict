@@ -5,6 +5,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.platformer.Screens.PlayScreen;
+import com.mygdx.platformer.Sprites.Entities.DarkElf;
+import com.mygdx.platformer.Sprites.Entities.Enemies.Succubus;
 import com.mygdx.platformer.Sprites.Entities.Entity;
 import com.mygdx.platformer.Sprites.Entities.Player;
 import com.mygdx.platformer.Sprites.Items.Item;
@@ -26,8 +28,11 @@ public class InventoryItem<T> {
     }
 
     public TextureRegion getTextureRegion() {
-        if (rootClass.isAssignableFrom(Player.class)) {
-            return Player.textureRegion;
+        if (rootClass == DarkElf.class) {
+            return DarkElf.textureRegion;
+        }
+        if (rootClass == Succubus.class) {
+            return Succubus.textureRegion;
         }
         if(isArray()) {
             return ((Item) (((Array) value).get(0))).textureRegion;

@@ -7,7 +7,6 @@ import com.mygdx.platformer.Screens.PlayScreen;
 
 public abstract class Player extends Entity {
     public float cost;
-    public static TextureRegion textureRegion = new TextureRegion(new Texture("sprites/dark_elf/raw/Idle/0_Dark_Elves_Idle_000.png"));;
     public Player(
             PlayScreen screen,
             float x,

@@ -4,9 +4,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -19,11 +23,13 @@ import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Sprites.Entities.DarkElf;
 import com.mygdx.platformer.Sprites.Entities.Enemies.Enemy;
 import com.mygdx.platformer.Sprites.Entities.Enemies.HellKnight;
+import com.mygdx.platformer.Sprites.Entities.Enemies.Succubus;
 import com.mygdx.platformer.Sprites.Entities.Entity;
 import com.mygdx.platformer.Sprites.Entities.Player;
 import com.mygdx.platformer.Sprites.Items.*;
 import com.mygdx.platformer.Sprites.Projectiles.Projectile;
 import com.mygdx.platformer.utils.B2WorldCreator;
+import com.mygdx.platformer.utils.DataStructures.EntityFactory;
 import com.mygdx.platformer.utils.DataStructures.EntityInventory;
 import com.mygdx.platformer.utils.DataStructures.Inventory;
 import com.mygdx.platformer.utils.EnemySpawner;
@@ -62,6 +68,7 @@ public class PlayScreen implements Screen {
     private TextureAtlas darkElfAtlas;
     private TextureAtlas devilArcherAtlas;
     private TextureAtlas hellKnightAtlas;
+    private TextureAtlas succubusAtlas;
 
     // Recharge Points for Buying Characters
     private float rechargePoints = 100;
@@ -73,6 +80,7 @@ public class PlayScreen implements Screen {
         darkElfAtlas = new TextureAtlas("sprites/dark_elf/dark_elf_merged.atlas");
         devilArcherAtlas = new TextureAtlas("sprites/devil_archer1/devil_archer1.atlas");
         hellKnightAtlas = new TextureAtlas("sprites/hell_knight/hell_knight.atlas");
+        succubusAtlas = new TextureAtlas("sprites/succubus/succubus.atlas");
 
         this.game = game;
         gameCam = new OrthographicCamera();
@@ -103,6 +111,7 @@ public class PlayScreen implements Screen {
 
     private void tempInitializeWorld() {
         entityInventory.addIfSpace(DarkElf.class);
+        entityInventory.addIfSpace(Succubus.class);
         spawners.add(new EnemySpawner(this, 20, 3, 5.0f, HellKnight.class));
     }
 
@@ -141,6 +150,8 @@ public class PlayScreen implements Screen {
                 return devilArcherAtlas;
             case "Hell Knight":
                 return hellKnightAtlas;
+            case "Succubus":
+                return succubusAtlas;
             case "Dark Elf":
             default:
                 return darkElfAtlas;
@@ -161,18 +172,9 @@ public class PlayScreen implements Screen {
 
     public void handleInput(float dt) {
         if (!gameOver()) {
-            if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
-                enemies.add(new HellKnight(this, 20, 3));
-            }
 
-            // Check for Dark Elf spawn only if recharge points are enough
             if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-                if (rechargePoints >= darkElfCost) {
-                    playerEntities.add(new DarkElf(this, 1, 3));
-                    rechargePoints -= darkElfCost;  // Deduct cost
-                } else {
-                    System.out.println("Not enough recharge points to buy Dark Elf!");
-                }
+                EntityFactory.upgradeDarkElfStats(100f, 0f, 10f, 0f, 0f);
             }
 
             for (int i = 0; i < 9; i++) {
@@ -180,7 +182,7 @@ public class PlayScreen implements Screen {
                     Player newEntity = entityInventory.spawnSelectedInventorySpace(i, this, 1, 3);
                     if (newEntity != null && rechargePoints >= newEntity.cost) {
                         playerEntities.add(newEntity);
-                        rechargePoints -= darkElfCost;
+                        rechargePoints -= newEntity.cost;
                     } else {
                         System.out.println("Not enough recharge points to buy entity!");
                     }
@@ -196,6 +198,7 @@ public class PlayScreen implements Screen {
         // Recharge points over time and update HUD
         rechargePoints = Math.min(rechargePoints + rechargeRate * dt, maxRechargePoints);
         hud.setRechargePoints(rechargePoints);
+        redrawHud(entityInventory);
 
         world.step(1/60f, 6, 4);
 
@@ -290,6 +293,25 @@ public class PlayScreen implements Screen {
             redrawHud(entityInventory);
         }
         return addSuccess;
+    }
+
+
+    public Array<TextureRegion> loadTextureRegionsFromFolder(String folderPath) {
+        Array<TextureRegion> textureRegions = new Array<>();
+
+        FileHandle folder = Gdx.files.internal(folderPath);
+        if (folder.isDirectory()) {
+            for (FileHandle file : folder.list()) {
+                if (file.extension().equals("png") || file.extension().equals("jpg")) {
+                    Texture texture = new Texture(file);
+                    TextureRegion textureRegion = new TextureRegion(texture);
+                    textureRegions.add(textureRegion);
+                }
+            }
+        } else {
+            Gdx.app.error("LoadTextures", "Path " + folderPath + " is not a directory.");
+        }
+        return textureRegions;
     }
 
     @Override

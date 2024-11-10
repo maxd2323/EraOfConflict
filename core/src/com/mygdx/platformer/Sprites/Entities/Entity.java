@@ -50,13 +50,9 @@ public abstract class Entity extends Sprite {
     protected boolean facingRight;
 
     // Stats
-    protected float healthCapacity;
+    protected EntityStats stats;
     protected float currentHealth;
-    protected float magickaCapacity;
     protected float currentMagicka;
-    protected float speed;
-    protected float baseDamage;
-    protected float attackCooldown;
 
     // Entity Identification
     protected String entityTag;
@@ -72,13 +68,9 @@ public abstract class Entity extends Sprite {
         loadTexturesAndAnimations(screen);
         setPosition(x, y);
 
-        healthCapacity = entityStats.initialHealth;
-        currentHealth = entityStats.initialHealth;
-        magickaCapacity = entityStats.initialMagicka;
-        currentMagicka = entityStats.initialMagicka;
-        attackCooldown = entityStats.attackCooldown;
-        speed = entityStats.speed;
-        baseDamage = entityStats.baseDamage;
+        stats = entityStats;
+        currentHealth = stats.initialHealth;
+        currentMagicka = stats.initialMagicka;
 
         destroyed = false;
         setToDestroy = false;
@@ -102,11 +94,11 @@ public abstract class Entity extends Sprite {
 
     private void logEntity() {
         Gdx.app.log(entityTag, "Entity instantiated with properties: " +
-                "healthCapacity=" + healthCapacity +
+                "healthCapacity=" + stats.initialHealth +
                 ", currentHealth=" + currentHealth +
-                ", magickaCapacity=" + magickaCapacity +
+                ", magickaCapacity=" + stats.initialMagicka +
                 ", currentMagicka=" + currentMagicka +
-                ", speed=" + speed +
+                ", speed=" + stats.speed +
                 ", destroyed=" + destroyed +
                 ", setToDestroy=" + setToDestroy +
                 ", timeSinceLastAttack=" + timeSinceLastAttack +
@@ -115,7 +107,7 @@ public abstract class Entity extends Sprite {
                 ", stateTimer=" + stateTimer +
                 ", shouldMove=" + shouldMove +
                 ", isDead=" + isDead +
-                ", baseDamage=" + baseDamage +
+                ", baseDamage=" + stats.baseDamage +
                 ", facingRight=" + facingRight +
                 ", entityTag=" + entityTag
         );
@@ -124,7 +116,7 @@ public abstract class Entity extends Sprite {
     public void move() {
         if (b2body != null && b2body.isActive()) {
             float multiple = facingRight ? 1 : -1;
-            b2body.setLinearVelocity(new Vector2(speed * multiple, 0));
+            b2body.setLinearVelocity(new Vector2(stats.speed * multiple, 0));
         }
     }
 
@@ -143,16 +135,16 @@ public abstract class Entity extends Sprite {
     protected void incrementHealth(int health) {
         this.currentHealth += health;
 
-        if(this.currentHealth > healthCapacity) {
-            this.currentHealth = healthCapacity;
+        if(this.currentHealth > stats.initialHealth) {
+            this.currentHealth = stats.initialHealth;
         }
     }
 
     protected void incrementMagicka(float magicka) {
         this.currentMagicka += magicka;
 
-        if(this.currentMagicka > magickaCapacity) {
-            this.currentMagicka = magickaCapacity;
+        if(this.currentMagicka > stats.initialMagicka) {
+            this.currentMagicka = stats.initialMagicka;
         }
         if(this.currentMagicka < 0) {
             this.currentMagicka = 0;
@@ -204,7 +196,7 @@ public abstract class Entity extends Sprite {
                 region = (TextureRegion) animations.get("slash").getKeyFrame(stateTimer, false);
                 if (animations.get("slash").isAnimationFinished(stateTimer)) {
                     // Apply damage at the end of animation
-                    opponent.applyDamage(baseDamage);
+                    opponent.applyDamage(stats.baseDamage);
                     runAttackAnimation = false;  // Reset after animation finishes
                 }
                 break;
@@ -278,7 +270,7 @@ public abstract class Entity extends Sprite {
     protected void updateCombat(float deltaTime) {
         if (inCombat && !runAttackAnimation) {
             timeSinceLastAttack += deltaTime;
-            if (timeSinceLastAttack >= attackCooldown) {
+            if (timeSinceLastAttack >= stats.attackCooldown) {
                 attack();
                 timeSinceLastAttack = 0f;
             }
