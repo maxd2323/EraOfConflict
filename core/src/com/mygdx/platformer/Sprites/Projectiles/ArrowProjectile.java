@@ -15,7 +15,7 @@ public class ArrowProjectile extends Projectile {
 
     public ArrowProjectile(PlayScreen screen, float x, float y, Boolean shootRight, float damage) {
         super(
-                new TextureRegion(new Texture(Gdx.files.local("sprites/devil_archer1/raw/Arrow.png"))),
+                new TextureRegion(new Texture(Gdx.files.local("sprites/devil_archer/raw/Arrow.png"))),
                 screen, x, y, shootRight, damage, new Vector2(75, 20)
         );
         b2body.setActive(true);

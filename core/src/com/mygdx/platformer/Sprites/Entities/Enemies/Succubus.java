@@ -3,12 +3,10 @@ package com.mygdx.platformer.Sprites.Entities.Enemies;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.platformer.Screens.PlayScreen;
 import com.mygdx.platformer.Sprites.Entities.EntityStats;
 import com.mygdx.platformer.Sprites.Entities.Player;
-import com.mygdx.platformer.utils.Constants;
 
 public class Succubus extends Player {
     public static TextureRegion textureRegion = new TextureRegion(new Texture("sprites/succubus/raw/Idle/0_Banshee_Idle_000.png"));;
@@ -20,7 +18,7 @@ public class Succubus extends Player {
                 y,
                 entityStats,
                 "Succubus",
-                40
+                false
         );
     }
 

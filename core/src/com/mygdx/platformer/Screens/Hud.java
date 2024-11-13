@@ -27,8 +27,6 @@ public class Hud implements Disposable {
 
     private static Label scoreLabel;
     private static Label healthTracker;
-    private static Inventory currentInventory;
-    private DialogBox dialogBox;
     Label healthLabel;
     Label levelLabel;
     Label worldLabel;
@@ -41,22 +39,13 @@ public class Hud implements Disposable {
     private float rechargePoints = 100;       // Current recharge points
 
     public Hud(SpriteBatch sb) {
-        currentInventory = new Inventory(9);
         currentHealth = 99;
         coins = 0;
 
         viewport = new FitViewport(600, 400, new OrthographicCamera());
         stage = new Stage(viewport, sb);
 
-        drawAll(currentInventory);
-    }
-
-    public void setDialogBoxText(String text) {
-        this.dialogBox.setText(text);
-    }
-
-    public void appendDialogBoxText(String text) {
-        this.dialogBox.appendText(text);
+        drawAll(null);
     }
 
     public void drawAll(Inventory currentInventory) {
@@ -64,8 +53,9 @@ public class Hud implements Disposable {
         createTable();
         healthBar = createProgressBar("ui/healthbar.png", 0, 100, 10, 10, currentHealth);
         rechargeBar = createProgressBar("ui/magickaBar.png", 0, maxRechargePoints, 350, 10, (int) rechargePoints);  // Updated to use recharge points
-        createInventoryBar(currentInventory);
-        dialogBox = new DialogBox(stage);
+        if (currentInventory != null) {
+            createInventoryBar(currentInventory);
+        }
     }
 
     private void createInventoryBar(Inventory currentInventory) {
@@ -106,12 +96,7 @@ public class Hud implements Disposable {
         table.top();
         table.setFillParent(true);
 
-        healthTracker = new Label(String.format("%03d", currentHealth), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         scoreLabel = new Label(String.format("Coins %06d", coins), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        healthLabel = new Label("Health", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        levelLabel = new Label("1-L", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        worldLabel = new Label("Location", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        platformerLabel = new Label("PLATFORMER", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
 
         table.add(platformerLabel).expandX().padTop(10);
         table.add(worldLabel).expandX().padTop(10);

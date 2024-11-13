@@ -17,7 +17,8 @@ public class HellKnight extends Enemy {
                 x,
                 y,
                 entityStats,
-                "HellKnight"
+                "HellKnight",
+                false
         );
     }
 

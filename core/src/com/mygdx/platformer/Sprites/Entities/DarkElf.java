@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.platformer.Screens.PlayScreen;
-import com.mygdx.platformer.utils.Constants;
 
 public class DarkElf extends Player {
 
@@ -18,7 +17,7 @@ public class DarkElf extends Player {
                 y,
                 entityStats,
                 "DarkElf",
-                40
+                false
         );
     }
 

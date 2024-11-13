@@ -4,21 +4,21 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Screens.PlayScreen;
+import com.mygdx.platformer.Sprites.Entities.EntityStats;
 import com.mygdx.platformer.Sprites.Projectiles.ArrowProjectile;
 import com.mygdx.platformer.Sprites.Projectiles.Projectile;
-import com.mygdx.platformer.utils.Constants;
 
 public class DevilArcher extends Enemy {
 
-    public DevilArcher(PlayScreen screen, float x, float y) {
+    public DevilArcher(PlayScreen screen, float x, float y, EntityStats entityStats) {
         super(
                 screen,
                 x,
                 y,
-                Constants.DEVIL_ARCHER_STATS,
-                "DevilArcher"
+                entityStats,
+                "DevilArcher",
+                true
         );
     }
 
@@ -36,12 +36,8 @@ public class DevilArcher extends Enemy {
     }
 
     @Override
-    protected void attack() {
-    }
-
-    @Override
     public void loadTexturesAndAnimations(PlayScreen screen) {
-        TextureRegion playerStand = new TextureRegion(new Texture("sprites/dark_elf/raw/Idle/0_Dark_Elves_Idle_000.png"));
+        TextureRegion playerStand = new TextureRegion(new Texture("sprites/devil_archer/raw/Idle/0_Archer_Idle_000.png"));
 
         textures = new ArrayMap<>();
         textures.put("jump", playerStand);
@@ -50,7 +46,7 @@ public class DevilArcher extends Enemy {
         Animation run = new Animation(0.1f, screen.getAtlas("Devil Archer").findRegions("0_Archer_Running"));
         Animation dead = new Animation(0.1f, screen.getAtlas("Devil Archer").findRegions("0_Archer_Dying"));
         Animation _throw = new Animation(0.05f, screen.getAtlas("Devil Archer").findRegions("0_Archer_Throwing"));
-        Animation idle = new Animation(0.1f, screen.getAtlas("Devil Archer").findRegions("0_Archer_Idle Blinking"));
+        Animation idle = new Animation(0.1f, screen.getAtlas("Devil Archer").findRegions("0_Archer_Idle_Blinking"));
         Animation hurt = new Animation(0.1f, screen.getAtlas("Devil Archer").findRegions("0_Archer_Hurt"));
         Animation shooting = new Animation(0.05f, screen.getAtlas("Devil Archer").findRegions("0_Archer_Shooting"));
 
@@ -58,8 +54,9 @@ public class DevilArcher extends Enemy {
         animations.put("run", run);
         animations.put("dead", dead);
         animations.put("throw", _throw);
+        animations.put("slash", _throw);
         animations.put("idle", idle);
         animations.put("hurt", hurt);
-        animations.put("shoot", shooting);
+        animations.put("shooting", shooting);
     }
 }

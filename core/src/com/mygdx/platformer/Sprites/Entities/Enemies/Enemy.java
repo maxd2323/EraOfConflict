@@ -14,7 +14,7 @@ public abstract class Enemy extends Entity {
             float y,
             EntityStats entityStats
     ) {
-        this(screen, x, y, entityStats, "Enemy");
+        this(screen, x, y, entityStats, "Enemy", false);
     }
 
     public Enemy(
@@ -22,14 +22,16 @@ public abstract class Enemy extends Entity {
             float x,
             float y,
             EntityStats entityStats,
-            String entityTag
+            String entityTag,
+            boolean isArcherClass
     ) {
         super(
                 screen,
                 x,
                 y,
                 entityStats,
-                entityTag
+                entityTag,
+                isArcherClass
         );
         facingRight = false;
 
@@ -38,8 +40,6 @@ public abstract class Enemy extends Entity {
 
     public void update(float deltaTime) {
         updatePositionAndBounds(deltaTime);
-        incrementMagicka(1f);  // Player-specific logic
-
         handleDestruction();
 
         if (b2body.getLinearVelocity().y == 0 && shouldMove) {

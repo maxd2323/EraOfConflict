@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Sprites.Entities.DarkElf;
+import com.mygdx.platformer.Sprites.Entities.Enemies.DevilArcher;
 import com.mygdx.platformer.Sprites.Entities.Enemies.Enemy;
 import com.mygdx.platformer.Sprites.Entities.Enemies.HellKnight;
 import com.mygdx.platformer.Sprites.Entities.Enemies.Succubus;
@@ -78,7 +79,7 @@ public class PlayScreen implements Screen {
     private int coins = 0;
     public PlayScreen(Platformer game) {
         darkElfAtlas = new TextureAtlas("sprites/dark_elf/dark_elf_merged.atlas");
-        devilArcherAtlas = new TextureAtlas("sprites/devil_archer1/devil_archer1.atlas");
+        devilArcherAtlas = new TextureAtlas("sprites/devil_archer/devil_archer.atlas");
         hellKnightAtlas = new TextureAtlas("sprites/hell_knight/hell_knight.atlas");
         succubusAtlas = new TextureAtlas("sprites/succubus/succubus.atlas");
 
@@ -112,7 +113,7 @@ public class PlayScreen implements Screen {
     private void tempInitializeWorld() {
         entityInventory.addIfSpace(DarkElf.class);
         entityInventory.addIfSpace(Succubus.class);
-        spawners.add(new EnemySpawner(this, 20, 3, 5.0f, HellKnight.class));
+        spawners.add(new EnemySpawner(this, 20, 3, 5.0f, DevilArcher.class));
     }
 
     public void redrawHud(Inventory inventory) {
@@ -174,15 +175,15 @@ public class PlayScreen implements Screen {
         if (!gameOver()) {
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-                EntityFactory.upgradeDarkElfStats(100f, 0f, 10f, 0f, 0f);
+                EntityFactory.upgradeDarkElfStats(100f, 0f, 10f, 0f, 0f, 0f);
             }
 
             for (int i = 0; i < 9; i++) {
                 if (Gdx.input.isKeyJustPressed(Input.Keys.valueOf(String.valueOf(i + 1)))) {
                     Player newEntity = entityInventory.spawnSelectedInventorySpace(i, this, 1, 3);
-                    if (newEntity != null && rechargePoints >= newEntity.cost) {
+                    if (newEntity != null && rechargePoints >= newEntity.stats.spawnCost) {
                         playerEntities.add(newEntity);
-                        rechargePoints -= newEntity.cost;
+                        rechargePoints -= newEntity.stats.spawnCost;
                     } else {
                         System.out.println("Not enough recharge points to buy entity!");
                     }

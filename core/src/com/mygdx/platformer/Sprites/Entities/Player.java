@@ -1,19 +1,16 @@
 package com.mygdx.platformer.Sprites.Entities;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.mygdx.platformer.Platformer;
 import com.mygdx.platformer.Screens.PlayScreen;
 
 public abstract class Player extends Entity {
-    public float cost;
     public Player(
             PlayScreen screen,
             float x,
             float y,
             EntityStats entityStats
     ) {
-        this(screen, x, y, entityStats, "Player", 1);
+        this(screen, x, y, entityStats, "Player", false);
     }
 
     public Player(
@@ -22,19 +19,19 @@ public abstract class Player extends Entity {
             float y,
             EntityStats entityStats,
             String entityTag,
-            float cost
+            boolean isArcherClass
     ) {
         super(
                 screen,
                 x,
                 y,
                 entityStats,
-                entityTag
+                entityTag,
+                isArcherClass
         );
 
         setBounds(0, 0, Platformer.getTileMultiplier(1.5f), Platformer.getTileMultiplier(1.5f));
         setRegion(textures.get("stand"));
-        this.cost = cost;
     }
 
     // Getters
@@ -55,10 +52,6 @@ public abstract class Player extends Entity {
         if (b2body.getPosition().y < -10 || currentHealth <= 0) {
             die();
         }
-    }
-
-    public void setCost(float c) {
-        cost = c;
     }
 
 

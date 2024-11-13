@@ -44,24 +44,26 @@ public abstract class Entity extends Sprite {
     // Animation management
     protected boolean runAttackAnimation;
     protected boolean runThrowAnimation;
+    protected boolean runShootAnimation;
     protected boolean runHurtAnimation;
 
     // Facing Direction
     protected boolean facingRight;
 
     // Stats
-    protected EntityStats stats;
+    public EntityStats stats;
     protected float currentHealth;
     protected float currentMagicka;
 
     // Entity Identification
     protected String entityTag;
+    protected boolean isArcherClass;
 
     public Entity(PlayScreen screen, EntityStats entityStats) {
-        this(screen, 0f, 0f, entityStats, "entity");
+        this(screen, 0f, 0f, entityStats, "entity", false);
     }
 
-    public Entity(PlayScreen screen, float x, float y, EntityStats entityStats, String entityTag) {
+    public Entity(PlayScreen screen, float x, float y, EntityStats entityStats, String entityTag, boolean isArcherClass) {
         super();
         this.world = screen.getWorld();
         this.screen = screen;
@@ -82,6 +84,7 @@ public abstract class Entity extends Sprite {
         isDead = false;
         facingRight = true;
         this.entityTag = entityTag;
+        this.isArcherClass = isArcherClass;
 
         runThrowAnimation = false;
         runAttackAnimation = false;
@@ -181,6 +184,13 @@ public abstract class Entity extends Sprite {
         }
     }
 
+    protected void shoot() {
+        if (!runShootAnimation) {
+            runShootAnimation = true; // Start animation
+            stateTimer = 0; // Reset state timer for animation
+        }
+    }
+
     public TextureRegion getFrame(float deltaTime) {
         currentState = getState();
 
@@ -192,7 +202,15 @@ public abstract class Entity extends Sprite {
                     setToDestroy = true;
                 }
                 break;
+            case SHOOTING:
+                Gdx.app.log(entityTag, "shooting");
+                region = (TextureRegion) animations.get("shooting").getKeyFrame(stateTimer);
+                if(animations.get("shooting").isAnimationFinished(stateTimer)){
+                    runShootAnimation = false;
+                }
+                break;
             case SLASHING:
+                Gdx.app.log(entityTag, "slashing");
                 region = (TextureRegion) animations.get("slash").getKeyFrame(stateTimer, false);
                 if (animations.get("slash").isAnimationFinished(stateTimer)) {
                     // Apply damage at the end of animation
@@ -249,8 +267,9 @@ public abstract class Entity extends Sprite {
             return State.SLASHING;
         } else if(runThrowAnimation) {
             return State.THROWING;
-        }
-        else if(runHurtAnimation) {
+        } else if (runShootAnimation) {
+            return State.SHOOTING;
+        } else if(runHurtAnimation) {
             return State.HURT;
         }
         else if(b2body.getLinearVelocity().y > 0 || (b2body.getLinearVelocity().y < 0 && previousState == State.JUMPING)) {
@@ -271,7 +290,11 @@ public abstract class Entity extends Sprite {
         if (inCombat && !runAttackAnimation) {
             timeSinceLastAttack += deltaTime;
             if (timeSinceLastAttack >= stats.attackCooldown) {
-                attack();
+                if (isArcherClass) {
+                    shoot();
+                } else {
+                    attack();
+                }
                 timeSinceLastAttack = 0f;
             }
             if (opponent != null && opponent.isDead) {

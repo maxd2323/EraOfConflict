@@ -1,4 +1,4 @@
-devil_archer1.png
+devil_archer.png
 size:8192,8192
 repeat:none
 0_Archer_Dying
@@ -299,7 +299,7 @@ bounds:6316,904,900,900
 index:17
 bounds:7218,1806,900,900
 
-devil_archer12.png
+devil_archer2.png
 size:8192,8192
 repeat:none
 0_Archer_Dying
